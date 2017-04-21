@@ -1,5 +1,4 @@
-from os import startfile, makedirs
-from os.path import dirname, join, basename
+from os.path import dirname
 from datetime import date
 from pyexcel import Sheet, get_sheet
 
@@ -65,59 +64,6 @@ class FinalReport(Sheet):
             self.name_rows_by_column(0)
             self._finished = True
 
-    # def resolve_name(self, str_fmt=None, f_ext='xlsx'):
-    #     if str_fmt:
-    #         file_string = str_fmt.format(date=self.date.strftime("%m%d%Y"))
-    #     else:
-    #         file_string = '{date}_{type}'.format(date=self.date, type=self.type)
-    #     return '{f_string}.{fmt}'.format(f_string=file_string,
-    #                                      fmt=f_ext)
-    #
-    # def resolve_path(self, tgt_path=None, sub_dir=None):
-    #     try:
-    #         if sub_dir:
-    #             sub_dir = sub_dir.format(mo=self.date.strftime('%B'),
-    #                                      yr=self.date.strftime('%Y'))
-    #
-    #         if tgt_path and sub_dir:
-    #             path = join(tgt_path, sub_dir)
-    #         elif sub_dir:
-    #             path = join(self.save_path, sub_dir)
-    #         else:
-    #             raise ValueError()
-    #     except ValueError:
-    #         print('No location provided'
-    #               'to save file: {name} {type}'.format(name=self.date,
-    #                                                    type=self.type))
-    #     else:
-    #         return path
-
-    # def save(self, str_fmt=None, save_fmt='xlsx', tgt_path=None, sub_dir=None, full_path=None):
-    #     if full_path:
-    #         folder_path = dirname(full_path)
-    #         file_path = full_path
-    #     else:
-    #         folder_path = self.resolve_path(tgt_path=tgt_path,
-    #                                         sub_dir=sub_dir)
-    #         file_name = self.resolve_name(str_fmt=str_fmt,
-    #                                       f_ext=save_fmt)
-    #         file_path = join(folder_path, file_name)
-    #     try:
-    #         self.save_as(filename=file_path)
-    #     except FileNotFoundError:
-    #         makedirs(folder_path, exist_ok=True)
-    #         self.save_as(filename=file_path)
-
-    # def open(self, str_fmt=None, f_ext='xlsx', tgt_path=None, sub_dir=None, full_path=None):
-    #     if full_path:
-    #         startfile(full_path)
-    #     else:
-    #         folder_path = self.resolve_path(tgt_path=tgt_path,
-    #                                         sub_dir=sub_dir)
-    #         file_name = self.resolve_name(str_fmt=str_fmt,
-    #                                       f_ext=f_ext)
-    #         file_path = join(folder_path, file_name)
-    #         startfile(file_path)
 
     '''
     Report Section
