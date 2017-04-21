@@ -24,7 +24,23 @@ def call_back_handler(fn, exceptions, handler, *args, **kwargs):
         print(format_exc())
 
 
-clasgit s DateTimeEncoder(JSONEncoder):
+def valid_phone_number(mixed_string):
+    only_digits = [ch for ch in str(mixed_string) if ch.isdigit()]
+    try:
+        return int(
+            str(
+                ''.join(
+                    only_digits[1:]
+                    if len(only_digits) > 7 and only_digits[0] == 1
+                    else only_digits
+                )
+            )
+        )
+    except ValueError:
+        return None
+
+
+class DateTimeEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()

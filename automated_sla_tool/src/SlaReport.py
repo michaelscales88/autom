@@ -8,7 +8,7 @@ from collections import defaultdict, OrderedDict
 from automated_sla_tool.src.BucketDict import BucketDict
 from automated_sla_tool.src.AReport import AReport
 from automated_sla_tool.src.utilities import valid_dt
-from automated_sla_tool.src.factory import Downloader
+from automated_sla_tool.src.factory import get_vm
 
 from json import dumps
 
@@ -23,6 +23,7 @@ class SlaReport(AReport):
             print('Building a report for {date}'.format(date=self._inr))
             self.load_and_prepare()
             self.sla_report = {}
+            self.run()
 
     '''
     UI Section
@@ -76,23 +77,23 @@ class SlaReport(AReport):
         self.util.apply_format_to_sheet(sheet=(self.src_files[r'Group Abandoned Calls']),
                                         one_filter=self.util.answered_filter)
         self.scrutinize_abandon_group()
-
         if not self.test_mode:
-            self.src_files[r'Voice Mail'] = self.modify_vm(Downloader(parent=self).get_vm(self.interval))
-            print('got vm')
-            print(dumps(self.src_files[r'Voice Mail'], indent=4))
+            self.src_files[r'Voice Mail'] = self.modify_vm(get_vm(self))
+            # print('got vm')
+            # print(dumps(self.src_files[r'Voice Mail'], indent=4))
         else:
-            print('applying format')
-            for sheet in self.src_files['Cradle to Grave']:
-                try:
-                    sheet.column.format('Event Duration', self.util.to_td)
-                    sheet.column.format('Start Time', self.util.to_dt)
-                    sheet.column.format('End Time', self.util.to_dt)
-                except Exception as e:
-                    print(e, 'Error Motherfreaker')
-                    # sheet.map(self.util.test_cleanse)
-            # self.src_files['Group Abandoned Calls'].map(self.util.test_cleanse)
-            print('testing format')
+            # print('applying format')
+            # for sheet in self.src_files['Cradle to Grave']:
+            #     try:
+            #         sheet.column.format('Event Duration', self.util.to_td)
+            #         sheet.column.format('Start Time', self.util.to_dt)
+            #         sheet.column.format('End Time', self.util.to_dt)
+            #     except Exception as e:
+            #         print(e, 'Error Motherfreaker')
+            #         # sheet.map(self.util.test_cleanse)
+            # # self.src_files['Group Abandoned Calls'].map(self.util.test_cleanse)
+            # print('testing format')
+            pass
             # for sheet in self.src_files['Cradle to Grave']:
             #     for row in sheet:
             #         print([type(cell) for cell in row])
@@ -638,7 +639,9 @@ class SlaReport(AReport):
             c_vm = self.new_type_cradle_vm()
             for client_name, inc_data, c_vm in sorted(self.util.common_keys(inc_data, c_vm)):
                 for match1, match2 in self.util.return_matches(inc_data, c_vm, match_val='phone_number'):
+                    print('found a match:', match1, match2)
                     if abs(match1['time'] - match2['time']) < timedelta(seconds=30):
+                        print('matched their time')
                         call_id = match1['call_id'] if match1.get('call_id', None) else match2['call_id']
                         client_info = rtn_dict.get(client_name, [])
                         client_info.append(call_id)
@@ -662,6 +665,7 @@ class SlaReport(AReport):
                         print('need a way to fix blanks and numbers')
                     client_info = voice_mail_dict.get(receiving_party, [])
                     try:
+                        print('this is the matching telephone number:', self.util.phone_number(call_id_page[row_name, 'Calling Party']))
                         # TODO: phone_number might be faster lookup as an integer
                         a_vm = {
                             'phone_number': self.util.phone_number(call_id_page[row_name, 'Calling Party']),

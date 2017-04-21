@@ -9,7 +9,7 @@ from pywinauto.findwindows import find_window, WindowNotFoundError
 from pywinauto.controls.hwndwrapper import HwndWrapper
 
 from automated_sla_tool.src.UtilityObject import UtilityObject
-from automated_sla_tool.src.factory import Loader
+from automated_sla_tool.src.factory import get_loader
 
 
 class UniqueDict(dict):
@@ -277,7 +277,7 @@ class ReportUtilities(UtilityObject):
     def load_data(report):
         print('testing load_data')
 
-        ld = Loader()
+        ld = get_loader()
         ld.connection = report
         ld.cwd = report.src_doc_path
 
@@ -320,11 +320,14 @@ class ReportUtilities(UtilityObject):
     def return_matches(*args, match_val=None):
         if len(args) == 2:
             shortest_list, longest_list = ReportUtilities.shortest_longest(*args)
+            print(shortest_list)
+            print(longest_list)
             longest_list_indexed = {}
             for item in longest_list:
                 longest_list_indexed[item[match_val]] = item
             for item in shortest_list:
                 if item[match_val] in longest_list_indexed:
+                    print('matches thinks i found a match')
                     yield item, longest_list_indexed[item[match_val]]
 
     # Filter Section
