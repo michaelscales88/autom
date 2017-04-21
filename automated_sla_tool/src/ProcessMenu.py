@@ -1,10 +1,18 @@
 import datetime
 import pyexcel as pe
 from collections import defaultdict
-from PyQt5.QtWidgets import (QMainWindow, QDesktopWidget, QPushButton)
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QDesktopWidget,
+    QPushButton
+)
 from PyQt5.QtCore import (pyqtSignal, Qt)
-from automated_sla_tool.src import (DockWidget, SplitterFrameWidget,
-                                    ProcessObject, ProcessWorker)
+from automated_sla_tool.src import (
+    DockWidget,
+    SplitterFrameWidget,
+    ProcessObject,
+    # ProcessWorker
+)
 
 
 class ProcessMenu(QMainWindow):
@@ -46,12 +54,12 @@ class ProcessMenu(QMainWindow):
         self.tab_data.connect(self.process.add_data)
 
         # Widget Layout
-        splitter = SplitterFrameWidget(self,
-                                       widget1=self.process.get_progress_bar(),
-                                       widget2=self.process.get_err(),
-                                       orientation='Vertical',
-                                       arrow_direction='left')
-        self.setCentralWidget(splitter)
+        # splitter = SplitterFrameWidget(self,
+        #                                widget1=self.process.get_progress_bar(),
+        #                                widget2=self.process.get_err(),
+        #                                orientation='Vertical',
+        #                                arrow_direction='left')
+        # self.setCentralWidget(splitter)
         self.addDockWidget(Qt.RightDockWidgetArea, self.__buttons)
         self.addDockWidget(Qt.RightDockWidgetArea, self.__save_dock)
         self.addDockWidget(Qt.TopDockWidgetArea, self.__excel_dock)
@@ -71,9 +79,9 @@ class ProcessMenu(QMainWindow):
 
     def execute_process(self):
         print('Executing process...')
-        proc_worker = ProcessWorker(proc=self.process)
-        proc_worker.start()
-        proc_worker.transmit_report.connect(self.tab_data.emit)
+        # proc_worker = ProcessWorker(proc=self.process)
+        # proc_worker.start()
+        # proc_worker.transmit_report.connect(self.tab_data.emit)
 
     def closeEvent(self, event):
         self.exit_status.emit(self.process.get_name())

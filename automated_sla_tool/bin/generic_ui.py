@@ -1,7 +1,6 @@
 from automated_sla_tool.src.GenericUi import GenericUi as Ui
 from automated_sla_tool.src.SlaReport import SlaReport
 
-from sys import argv
 from datetime import datetime, timedelta
 
 
@@ -32,13 +31,13 @@ def main(report_date=None):
         my_ui.object = my_obj
         my_ui.run()
     else:
-        when_to_when()
-        # manual_input()
+        # when_to_when()
+        manual_input()
 
 
 if __name__ == '__main__':
-    # main(datetime.today().date().replace(year=int(input('Year?')), month=int(input('Month?')), day=int(input('Day?'))))
     main()
 else:
-    main(argv[1:])
-    # main(datetime.date().replace(year=int(input('Year?')), month=int(input('Month?')), day=int(input('Day?'))))
+    # This loads when the module loads. you can load resources in this way
+    pass
+

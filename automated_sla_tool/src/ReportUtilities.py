@@ -18,57 +18,7 @@ class UniqueDict(dict):
             super().__setitem__(key, value)
 
 
-class BoundSettings(object):
-    def __init__(self):
-        self._bound_settings = []
-        self._cwd = None
-
-    @property
-    def current_binding(self):
-        return self._bound_settings
-
-    @current_binding.setter
-    def current_binding(self, new_binding):
-        self._bound_settings = new_binding
-
-    @property
-    def cwd(self):
-        return self._cwd
-
-    @cwd.setter
-    def cwd(self, new_dir):
-        self._cwd = new_dir
-
-
 class ReportUtilities(UtilityObject):
-    def __init__(self):
-        super().__init__()
-        self._bound_settings = BoundSettings()
-        self._bound_connection = None
-
-    @property
-    def cwd(self):
-        return self._bound_settings.cwd
-
-    @cwd.setter
-    def cwd(self, new_wd):
-        self._bound_settings.cwd = new_wd
-
-    @property
-    def bind_settings(self):
-        return tuple(self._bound_settings.current_binding)
-
-    @bind_settings.setter
-    def bind_settings(self, new_binding):
-        self._bound_settings.current_binding = new_binding
-
-    @property
-    def bind_connection(self):
-        return self._bound_connection
-
-    @bind_connection.setter
-    def bind_connection(self, new_binding):
-        self._bound_connection = new_binding
 
     @staticmethod
     def is_weekday(given_day):
@@ -123,14 +73,12 @@ class ReportUtilities(UtilityObject):
 
     @staticmethod
     def datetime_handler(x):
-        # print(type(x))
         if isinstance(x, datetime):
             return x.isoformat()
         elif isinstance(x, timedelta):
             return str(x)
         else:
             return str(x)
-        # raise TypeError("Unknown type")
 
     @staticmethod
     def apply_format_to_wb(wb, filters=(), one_filter=None):
@@ -275,13 +223,10 @@ class ReportUtilities(UtilityObject):
     # TODO 2: this should also download files
     @staticmethod
     def load_data(report):
-        print('testing load_data')
 
         ld = get_loader()
         ld.connection = report
         ld.cwd = report.src_doc_path
-
-        # self.bind_settings = report.settings['Header Formats']
 
         for f_name, path, ext in ld.load_or_dl(report.req_src_files):
             print(f_name, path)
@@ -297,9 +242,6 @@ class ReportUtilities(UtilityObject):
                 file = ReportUtilities.context_manager(path, ext)
                 ReportUtilities.prepare_excel(file)
             yield f_name, file
-
-        # self.bind_settings = []
-        print('test complete')
 
     @staticmethod
     def safe_div(num, denom):
@@ -320,14 +262,11 @@ class ReportUtilities(UtilityObject):
     def return_matches(*args, match_val=None):
         if len(args) == 2:
             shortest_list, longest_list = ReportUtilities.shortest_longest(*args)
-            print(shortest_list)
-            print(longest_list)
             longest_list_indexed = {}
             for item in longest_list:
                 longest_list_indexed[item[match_val]] = item
             for item in shortest_list:
                 if item[match_val] in longest_list_indexed:
-                    print('matches thinks i found a match')
                     yield item, longest_list_indexed[item[match_val]]
 
     # Filter Section
@@ -335,8 +274,6 @@ class ReportUtilities(UtilityObject):
     def header_filter(row_index, row):
         corner_case = split('\(| - ', row[0])
         bad_word = corner_case[0].split(' ')[0] not in ('Feature', 'Call', 'Event')
-        # bad_word = corner_case[0].split(' ')[0] not in tuple(ReportUtilities.bound_settings)
-        # bad_words = ReportUtilities.bound_settings
         return True if len(corner_case) > 1 else bad_word
 
     @staticmethod
@@ -382,69 +319,8 @@ class ReportUtilities(UtilityObject):
         ReportUtilities.open_focus(tgt_dir)
         input('Any key to continue.')
 
-    # TODO this is actually confusing as hell. need to update this to be more programmatic
-    # @staticmethod
-    # def full_path(base_path=None, report=None):
-    #     folder_path = ReportUtilities.resolve_path(
-    #         report=report,
-    #         tgt_path=base_path
-    #     )
-    #     file_name = ReportUtilities.resolve_name(
-    #         report=report,
-    #         file_name=ReportUtilities.base(base_path)
-    #     )
-    #     return join(folder_path, file_name)
-
     @staticmethod
     def start(full_path):
         ReportUtilities.open_focus(full_path)
 
-    # @staticmethod
-    # def resolve_name(report=None, file_name=None, f_ext='xlsx'):
-    #     try:
-    #         file_string = ReportUtilities.compare_two(
-    #             (file_name, file_name),
-    #             (hasattr(report, 'settings'), report.settings['file_fmt'])
-    #         )
-    #         # if str_fmt:
-    #         #     file_string = str_fmt.format(date=report.date.strftime("%m%d%Y"))
-    #         # else:
-    #         #     file_string = '{date}_{type}'.format(date=report.date, type=report.type)
-    #         if file_string is None:
-    #             print('raising value')
-    #             raise ValueError()
-    #     except ValueError:
-    #         print("Couldn't find a name\n"
-    #               "to save file")
-    #     except AttributeError:
-    #         print('ReportUtilities.resolve_name: \n'
-    #               'Check report is correct type')
-    #     else:
-    #         print('exiting as expected')
-    #         return '{f_string}.{fmt}'.format(f_string=file_string,
-    #                                          fmt=f_ext)
-    #
-    # # TODO probably need to merge  tgt_path and sub_dir for simplicity
-    # @staticmethod
-    # def resolve_path(report=None, tgt_path=None, sub_dir=None):
-    #     try:
-    #         tgt_path = ReportUtilities.compare_two(
-    #             (tgt_path, tgt_path),
-    #             (hasattr(report, 'save_path'), report.save_path)
-    #         )
-    #         if tgt_path and sub_dir:
-    #             path = join(tgt_path, sub_dir)
-    #         elif tgt_path and hasattr(report, 'settings'):
-    #             path = join(tgt_path, report.settings['sub_dir_fmt'])
-    #         else:
-    #             raise ValueError()
-    #     except ValueError:
-    #         print('No location provided '
-    #               'to save file: {name} {type}'.format(name=report.date,
-    #                                                    type=report.type))
-    #     except AttributeError:
-    #         print('ReportUtilities.resolve_path: \n'
-    #               'Check report is correct type')
-    #     else:
-    #         return path
 
