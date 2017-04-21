@@ -21,6 +21,7 @@ class AppSettings(ConfigObj):
                                  create_empty=True,
                                  file_error=True)
             except (ConfigObjError, IOError) as e:
+
                 # TODO Give this menu options for fixing the issues. Opt 1: Show the configspec to fix.
                 # TODO at least show the configspec file name that is missing
                 print('Could not read {f_name}\n'
