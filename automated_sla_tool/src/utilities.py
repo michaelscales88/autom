@@ -24,7 +24,7 @@ def call_back_handler(fn, exceptions, handler, *args, **kwargs):
         print(format_exc())
 
 
-class DateTimeEncoder(JSONEncoder):
+clasgit s DateTimeEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()
