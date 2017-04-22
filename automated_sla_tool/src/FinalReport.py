@@ -1,3 +1,4 @@
+# noinspection PyPackageRequirements
 from os.path import dirname
 from datetime import date
 from pyexcel import Sheet, get_sheet

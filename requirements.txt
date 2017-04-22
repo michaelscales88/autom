@@ -10,3 +10,4 @@ python-xlib==0.19
 pywinauto==0.6.2.post1
 six==1.10.0
 texttable==0.8.8
+Flask==0.12.1
