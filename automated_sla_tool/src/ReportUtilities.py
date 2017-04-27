@@ -262,11 +262,14 @@ class ReportUtilities(UtilityObject):
     def return_matches(*args, match_val=None):
         if len(args) == 2:
             shortest_list, longest_list = ReportUtilities.shortest_longest(*args)
+            print(shortest_list)
+            print(longest_list)
             longest_list_indexed = {}
             for item in longest_list:
                 longest_list_indexed[item[match_val]] = item
             for item in shortest_list:
                 if item[match_val] in longest_list_indexed:
+                    print('matches thinks i found a match')
                     yield item, longest_list_indexed[item[match_val]]
 
     # Filter Section
