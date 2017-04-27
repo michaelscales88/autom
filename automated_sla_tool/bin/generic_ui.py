@@ -38,6 +38,6 @@ def main(report_date=None):
 if __name__ == '__main__':
     main()
 else:
-    # This loads when the module loads. you can load resources in this way
+    # This loads when the module loads. you can load module resources in this way
     pass
 

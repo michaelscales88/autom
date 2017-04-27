@@ -47,7 +47,7 @@ class ReportUtilities(UtilityObject):
                 str(
                     ''.join(
                         only_digits[1:]
-                        if len(only_digits) > 7 and only_digits[0] == 1
+                        if len(only_digits) > 7 and only_digits[0] == 1  # Remove international code: assumes one digit
                         else only_digits
                     )
                 )
