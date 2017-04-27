@@ -1,12 +1,12 @@
 from datetime import datetime, date, time, timedelta
-from os import listdir, rename, startfile
+from os import listdir, rename
 from dateutil.parser import parse
 from pyexcel import Book, Sheet, get_book
 from subprocess import Popen
 from re import split, sub
 from os.path import join, splitext, basename
-from pywinauto.findwindows import find_window, WindowNotFoundError
-from pywinauto.controls.hwndwrapper import HwndWrapper
+# from pywinauto.findwindows import find_window, WindowNotFoundError
+# from pywinauto.controls.hwndwrapper import HwndWrapper
 
 from automated_sla_tool.src.UtilityObject import UtilityObject
 from automated_sla_tool.src.factory import get_loader
@@ -304,15 +304,17 @@ class ReportUtilities(UtilityObject):
 
     @staticmethod
     def open_focus(target, p_type='explorer'):
-        try:
-            HwndWrapper(find_window(title=ReportUtilities.base(target))).set_focus()
-        except WindowNotFoundError:
-            Popen('{process} "{path}"'.format(
-                process=p_type,
-                path=target)
-            )
-        except FileNotFoundError:
-            print('File: {target} does not exist.'.format(target=target))
+        pass
+        # pywinauto does not work on MacOS
+        # try:
+        #     HwndWrapper(find_window(title=ReportUtilities.base(target))).set_focus()
+        # except WindowNotFoundError:
+        #     Popen('{process} "{path}"'.format(
+        #         process=p_type,
+        #         path=target)
+        #     )
+        # except FileNotFoundError:
+        #     print('File: {target} does not exist.'.format(target=target))
 
     @staticmethod
     def open_directory(tgt_dir):
