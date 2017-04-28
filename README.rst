@@ -20,6 +20,14 @@ generic_ui is provided as an interface to the report algorithm.
    As a result the code will not fully run on other machines. A more general version is in development.
    https://github.com/michaelscales88/falcon_reporting
 
+1.3   What is Luz useful for?
+
+.. note:: Purpose:
+
+    This has primarily been a self-educational tool, but has been useful for automating some reports which required a length
+    of human time to complete. This has been my first foray into OOP and I'm hoping that I the next generation of this program
+    can do something a little more helpful.
+
 Features
 --------
 
