@@ -1,15 +1,24 @@
-from automated_sla_tool.bin.generic_ui import main
-from flask import Flask
+from automated_sla_tool.bin import generic_ui
+from flask import Flask, render_template, request
+
+
 app = Flask(__name__)
 
-#
-# @app.route("/")
-# def main():
-#     main()
 
-@app.route("/")
-def test():
-    return "Test Success"
+@app.route('/')
+def my_form():
+    return render_template('my-form.html')
+
+
+@app.route('/', methods=['POST'])
+def main():
+    text = request.form['date']
+    return text
+    # return generic_ui.main()
+
+# @app.route("/")
+# def test():
+#     return "Test Success"
 
 
 if __name__ == "__main__":
