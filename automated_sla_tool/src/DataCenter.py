@@ -42,9 +42,10 @@ class DataCenter(object):
         pass
 
     def cache(self, key):
-        return {
+        self.json_layer[key] = {
             row: DataCenter.call(sheet=self.job[key], **cmds) for row, cmds in self.worker
         }
+        return self.json_layer[key]
 
     # Currently using settings file to control the extension for saving
     # TODO beef this up to identify the extension type from the file type
@@ -68,6 +69,10 @@ class DataCenter(object):
             rtn_val = behavior(rtn_val)
         return rtn_val
 
+    # TODO this should be in DataWorker eventually
+    def verified(self, key, column):
+        self.json_layer[key][column] = 'Verified'
+
     def dispatcher(self, file):
         for target, path in file.settings['Open Targets'].items():
             print('Trying to open:', target)
@@ -85,12 +90,16 @@ class DataCenter(object):
         for sheet_name in self.job.sheet_names():
             data = self.json_layer.get(
                 sheet_name,
-                self.cache(sheet_name)
+                None
             )
-            yield sheet_name, data
+            if data:
+                yield sheet_name, data
+            else:
+                yield sheet_name, self.cache(sheet_name)
 
     def __getitem__(self, item):
-        return self.matrix[item]
+        # return self.matrix[item]
+        return self.json_layer[item]
 
     def __setitem__(self, key, value):
         self.matrix[key] = value

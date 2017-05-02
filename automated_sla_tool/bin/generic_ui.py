@@ -17,22 +17,22 @@ def when_to_when():
         start += timedelta(days=1)
 
 
-def manual_input():
+def manual_input(test_mode=False):
     my_ui = Ui()
-    my_obj = SlaReport()
+    my_obj = SlaReport(test_mode=test_mode)
     my_ui.object = my_obj
     my_ui.run()
 
 
-def main(report_date=None):
+def main(report_date=None, test_mode=False):
     if report_date:
         my_ui = Ui()
-        my_obj = SlaReport(report_date=report_date)
+        my_obj = SlaReport(report_date=report_date, test_mode=test_mode)
         my_ui.object = my_obj
         my_ui.run()
     else:
         # when_to_when()
-        manual_input()
+        manual_input(test_mode=test_mode)
 
 
 if __name__ == '__main__':

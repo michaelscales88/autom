@@ -262,14 +262,14 @@ class ReportUtilities(UtilityObject):
     def return_matches(*args, match_val=None):
         if len(args) == 2:
             shortest_list, longest_list = ReportUtilities.shortest_longest(*args)
-            print(shortest_list)
-            print(longest_list)
+            # print(shortest_list)
+            # print(longest_list)
             longest_list_indexed = {}
             for item in longest_list:
                 longest_list_indexed[item[match_val]] = item
             for item in shortest_list:
                 if item[match_val] in longest_list_indexed:
-                    print('matches thinks i found a match')
+                    # print('matches thinks i found a match')
                     yield item, longest_list_indexed[item[match_val]]
 
     # Filter Section
@@ -308,9 +308,10 @@ class ReportUtilities(UtilityObject):
     @staticmethod
     def open_focus(target, p_type='explorer'):
         if system() == 'Windows':
+            # pywinauto does not work on OS X
             from pywinauto.findwindows import find_window, WindowNotFoundError
             from pywinauto.controls.hwndwrapper import HwndWrapper
-            # pywinauto does not work on MacOS
+
             try:
                 HwndWrapper(find_window(title=ReportUtilities.base(target))).set_focus()
             except WindowNotFoundError:

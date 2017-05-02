@@ -16,14 +16,14 @@ from json import dumps
 class SlaReport(AReport):
     def __init__(self, report_date=None, test_mode=False):
         super().__init__(rpt_inr=report_date, test_mode=test_mode)
-        if not self.test_mode and self.check_finished(sub_dir=self._settings['sub_dir_fmt'],
-                                                      report_string=self._settings['file_fmt']):
-            print('Report Complete for {date}'.format(date=self._inr))
+        if not self.test_mode and self.check_finished(sub_dir=self.settings['sub_dir_fmt'],
+                                                      report_string=self.settings['file_fmt']):
+            print('Report Complete for {date}'.format(date=self.interval))
         else:
-            print('Building a report for {date}'.format(date=self._inr))
+            print('Building a report for {date}'.format(date=self.interval))
             self.load_and_prepare()
             self.sla_report = {}
-            self.run()
+            # self.run()
 
     '''
     UI Section
@@ -51,8 +51,7 @@ class SlaReport(AReport):
                 ('-4 Days', -4),
                 ('-3 Days', -3),
                 ('-2 Days', -2),
-                ('Yesterday', -1),
-                # ('Testing - Do not use', 0)
+                ('Yesterday', -1)
             ]
         )
         return date.today() + timedelta(days=self.util.return_selection(input_opt))
@@ -78,26 +77,9 @@ class SlaReport(AReport):
         self.scrutinize_abandon_group()
         if not self.test_mode:
             self.src_files[r'Voice Mail'] = self.modify_vm(get_vm(self))
-            # print('got vm')
-            # print(dumps(self.src_files[r'Voice Mail'], indent=4))
         else:
-            # print('applying format')
-            # for sheet in self.src_files['Cradle to Grave']:
-            #     try:
-            #         sheet.column.format('Event Duration', self.util.to_td)
-            #         sheet.column.format('Start Time', self.util.to_dt)
-            #         sheet.column.format('End Time', self.util.to_dt)
-            #     except Exception as e:
-            #         print(e, 'Error Motherfreaker')
-            #         # sheet.map(self.util.test_cleanse)
-            # # self.src_files['Group Abandoned Calls'].map(self.util.test_cleanse)
-            # print('testing format')
-            pass
-            # for sheet in self.src_files['Cradle to Grave']:
-            #     for row in sheet:
-            #         print([type(cell) for cell in row])
-            # for row in self.src_files['Group Abandoned Calls']:
-            #     print([type(cell) for cell in row])
+            self.src_files[r'Voice Mail'] = get_vm(self)
+            # print(self.modify_vm(get_vm(self)))
 
     def new_run(self):
         ans_cid_by_client = self.group_cid_by_client(self.src_files[r'Call Details'])
@@ -217,22 +199,6 @@ class SlaReport(AReport):
                         self.sla_report[client_num].extract_abandon_group_details(
                             self.src_files[r'Group Abandoned Calls'])
 
-    # TODO this should probably be packed into w/e data pipeline
-    # def cache(self, sheet_name):
-    #     if sheet_name in self.json_layer.keys():
-    #         data = self.json_layer[sheet_name]
-    #     else:
-    #         data = self.jsonify_sla(sheet_name)
-    #         self.json_layer[sheet_name] = data
-    #     # print(dumps(data, indent=4, default=self.util.datetime_handler))
-    #     return data
-
-    # def print_cache(self):
-    #     print(dumps(self.json_layer, indent=4, default=self.util.datetime_handler))
-    #
-    # def print_record(self, record):
-    #     print(dumps(record, indent=4, default=self.util.datetime_handler))
-
     # def mask(self):
     #     # TODO to abstract the report excel/sql headers need to link to a program header
     #     # Ex .Ini
@@ -246,11 +212,80 @@ class SlaReport(AReport):
     # TODO pyexcel auto dt, int, and strings for summing timestamps
     # TODO 2: this will require adding Schema Event Type conversion data to work for dB and src doc
     def process_report2(self):
+        translator = {
+            value['client_num']: key for key, value in self.settings['Clients'].items()
+        }
+        print('applying format')
+        for sheet in self.src_files['Cradle to Grave']:
+            try:
+                sheet.column.format('Event Duration', self.util.to_td)
+                sheet.column.format('Start Time', self.util.to_dt)
+                sheet.column.format('End Time', self.util.to_dt)
+            except Exception as e:
+                print(e, 'Error Motherfreaker')
+        print('testing format')
         self.data_center.job = self
         print('about to iterate data center')
+        print('**Call Details**')
         for sheet_name, data_dict in self.data_center:
+            if data_dict['Answered']:
+                print(sheet_name)
+                self.data_center.print_record(data_dict)
+
+        print('**Group Abandoned**')
+        for sheet_name, data_dict in self.data_center:
+            if not data_dict['Answered']:
+                print(sheet_name)
+                self.data_center.print_record(data_dict)
+
+        print('**VERIFY VM**')
+        self.data_center.print_record(self.src_files[r'Voice Mail']['Danaher'])
+
+        print('**Unverified Voicemail**')
+        for sheet_name, data_dict in self.data_center:
+            if data_dict['Voicemail']:
+                # print(sheet_name)
+                # self.data_center.print_record(data_dict)
+                client_num = data_dict['Receiving Party']
+                # print('Trying to get client_name for', client_num)
+                client_name = translator.get(client_num, None)
+                # print('getting data for', client_name)
+                voicemail_data = self.src_files[r'Voice Mail'].get(client_name, None)
+                # print('Got data for', voicemail_data)
+                if voicemail_data:
+                    # print('checking whether', data_dict['Calling Party'], 'is in vm_data')
+                    call_instance = [d for d in voicemail_data if d['phone_number'] == data_dict['Calling Party']]
+                    # call_instance = voicemail_data.get(data_dict['Calling Party'], None)
+                    # print('This is my call instance', call_instance)
+                    if call_instance and abs(call_instance[0]['time'] - data_dict['End Time']) < timedelta(seconds=30):
+                        # print(call_instance)
+                        self.data_center.verified(sheet_name, 'Voicemail')
+                        # print('Claiming I set vm to verified for', sheet_name)
+
+        i_count = {}
+        print('**Verified Voicemail**')
+        for sheet_name, data_dict in self.data_center:
+            if data_dict['Voicemail'] == 'Verified':
+                if data_dict['Receiving Party'] == 7545:
+                    print(sheet_name)
+
+                # print(sheet_name)
+                # self.data_center.print_record(data_dict)
+                dup_info = i_count.get(
+                    data_dict['Receiving Party'], {
+                        'count': 0
+                    }
+                )
+                dup_info['count'] += 1
+                i_count[data_dict['Receiving Party']] = dup_info
+
+        self.data_center.print_record(i_count)
+        for sheet_name, data_dict in {sheet_name: data_dict for sheet_name, data_dict in self.data_center
+                                      if data_dict['Receiving Party'] == 7545 and data_dict['Voicemail'] == 'Verified'
+                                      }.items():
             print(sheet_name)
             self.data_center.print_record(data_dict)
+        print('completed iterating data center')
 
     def __getitem__(self, item):
         pass
@@ -360,14 +395,17 @@ class SlaReport(AReport):
         if isinstance(inc_data, dict):
             c_vm = self.new_type_cradle_vm()
             for client_name, inc_data, c_vm in sorted(self.util.common_keys(inc_data, c_vm)):
+                if client_name == 'Danaher':
+                    self.data_center.print_record(inc_data)
+                    self.data_center.print_record(c_vm)
                 for match1, match2 in self.util.return_matches(inc_data, c_vm, match_val='phone_number'):
-                    print('found a match:', match1, match2)
                     if abs(match1['time'] - match2['time']) < timedelta(seconds=30):
-                        print('matched their time')
                         call_id = match1['call_id'] if match1.get('call_id', None) else match2['call_id']
                         client_info = rtn_dict.get(client_name, [])
                         client_info.append(call_id)
                         rtn_dict[client_name] = client_info
+                        if client_name == 'Danaher':
+                            print('matched danaher call_id', call_id)
         return rtn_dict
 
     def new_type_cradle_vm(self):
@@ -378,16 +416,16 @@ class SlaReport(AReport):
                 if 'Voicemail' in row_event:
                     receiving_party = call_id_page[row_name, 'Receiving Party']
                     if receiving_party.isalpha():
-                        print('alpha {rp}'.format(rp=receiving_party))
+                        # print('alpha {rp}'.format(rp=receiving_party))
                         # check if this is a valid client
                         pass  # should pass if client name is here
                     else:
-                        print('non-alpha {rp}'.format(rp=receiving_party))
+                        # print('non-alpha {rp}'.format(rp=receiving_party))
                         # should catch blanks and clients in ext fmt
-                        print('need a way to fix blanks and numbers')
+                        # print('need a way to fix blanks and numbers')
+                        pass
                     client_info = voice_mail_dict.get(receiving_party, [])
                     try:
-                        print('this is the matching telephone number:', self.util.phone_number(call_id_page[row_name, 'Calling Party']))
                         # TODO: phone_number might be faster lookup as an integer
                         a_vm = {
                             'phone_number': self.util.phone_number(call_id_page[row_name, 'Calling Party']),
