@@ -40,10 +40,11 @@ from dateutil.parser import parse
 from re import split
 from types import MethodType
 from subprocess import Popen
-from automated_sla_tool.src.AudioTranscription import AudioTranscription
+# from automated_sla_tool.src.AudioTranscription import AudioTranscription
 from json import dumps
 from pyexcel_io import get_data
 from pyexcel import Sheet
+import platform
 
 # Settings path
 _settings = r'C:\Users\mscales\Desktop\Development\automated_sla_tool\automated_sla_tool\settings\SlaReport'
@@ -282,6 +283,7 @@ class Test(object):
 
 
 def test():
+    print(platform.system() == 'Windows')
     # test = ReportUtilities()
     # test.open_focus('excel', FILEPATH)
     # test.open_directory(FILEPATH)
@@ -334,10 +336,10 @@ def test():
     #
     # print(dumps(test, indent=4))
     # return
-    my_ui = Ui()
-    my_ui.object = SlaReport(test_mode=True)
+    # my_ui = Ui()
+    # my_ui.object = SlaReport(test_mode=True)
     # my_ui.object = ps_write()
-    my_ui.run()
+    # my_ui.run()
 
     # x = AudioTranscription()
     #
