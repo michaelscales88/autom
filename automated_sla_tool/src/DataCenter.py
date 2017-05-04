@@ -92,10 +92,7 @@ class DataCenter(object):
                 sheet_name,
                 None
             )
-            if data:
-                yield sheet_name, data
-            else:
-                yield sheet_name, self.cache(sheet_name)
+            yield (sheet_name, data) if data else (sheet_name, self.cache(sheet_name))
 
     def __getitem__(self, item):
         # return self.matrix[item]
