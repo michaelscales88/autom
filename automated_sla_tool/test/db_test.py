@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from collections import defaultdict
-
 
 from automated_sla_tool.src.DataCenter import DataCenter
 
@@ -37,17 +36,44 @@ def test():
     stop = datetime.now()
     print('Stop:', stop)
     print('Total:', stop - start)
+
     grouped_records = {}
     for record in list_of_records:
         key = record.pop(pk)
         call_data = grouped_records.get(
             key,
-            0
+            {
+                'Answered': False,  # This could be a configobj from AppSettings "Call Template"
+                'Talking Duration': timedelta(0),
+                'Start Time': None,
+                'End Time': None,
+            }
         )
-        call_data += 1
+        if record['event_type'] == 4:
+            print('Adding td for', key)
+            call_data['Talking Duration'] += (record['end_time'] - record['start_time'])
+
+        if call_data['Start Time'] and call_data['Start Time'] > record['start_time']:
+            call_data['Start Time'] = record['start_time']
+        else:
+            call_data['Start Time'] = record['start_time']
+
+        if call_data['End Time'] and call_data['End Time'] < record['end_time']:
+            call_data['End Time'] = record['end_time']
+        else:
+            call_data['End Time'] = record['end_time']
+
+        if (
+            not call_data['Answered']
+            and record['event_type'] == 4
+            and call_data['Talking Duration'] > timedelta(0)
+        ):
+            call_data['Answered'] = True
+
         # DO WORK
         grouped_records[key] = call_data
     dc.print_record(grouped_records)
+
     # grouped_records = defaultdict(list)
     # for record in list_of_records:
     #     key = record.pop('call_id')
@@ -60,6 +86,7 @@ def test():
     #     print(record)
     #     for rd in record_data:
     #         print(rd['event_type'])
+
 
 if __name__ == '__main__':
     test()
