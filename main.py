@@ -11,21 +11,32 @@ app = Flask(__name__)
 
 
 @app.route('/')
+def homepage():
+    return """<h1>SLA REPORT</h1>"""
+
+
+@app.route('/')
 def my_form():
     return render_template('my-form.html')
 
 
-@app.route('/', methods=['POST'])
-def main():
+@app.route('/main', methods=['POST'])
+def main_page():
     date_time = request.form['date']
-    return index(date_time)
+    return call('manual_main.py', date_time)
+
+
+@app.route('/test_main')  #
+def test_page():
+    date_time = request.form['date']
+    return call('test_main.py', date_time)
 
 
 # This is wehre I invoke scripting
-def index(string_date=None):
+def call(file, string_date=None):
     def inner():
         proc = Popen(
-            ['python', 'manual_main.py', string_date],  # call something with a lot of output so we can see it
+            ['python', file, string_date],  # call something with a lot of output so we can see it
             shell=True,
             stdout=PIPE,
             stdin=PIPE
@@ -39,7 +50,7 @@ def index(string_date=None):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000, use_reloader=True)
 
 
 

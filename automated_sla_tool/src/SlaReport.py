@@ -77,9 +77,8 @@ class SlaReport(AReport):
         self.scrutinize_abandon_group()
         if not self.test_mode:
             self.src_files[r'Voice Mail'] = self.modify_vm(get_vm(self))
-        else:
-            self.src_files[r'Voice Mail'] = get_vm(self)
-            # print(self.modify_vm(get_vm(self)))
+        # else:
+        #     self.src_files[r'Voice Mail'] = get_vm(self)
 
     def new_run(self):
         ans_cid_by_client = self.group_cid_by_client(self.src_files[r'Call Details'])
@@ -238,54 +237,54 @@ class SlaReport(AReport):
                 print(sheet_name)
                 self.data_center.print_record(data_dict)
 
-        print('**VERIFY VM**')
-        self.data_center.print_record(self.src_files[r'Voice Mail']['Danaher'])
-
-        print('**Unverified Voicemail**')
-        for sheet_name, data_dict in self.data_center:
-            if data_dict['Voicemail']:
-                # print(sheet_name)
-                # self.data_center.print_record(data_dict)
-                client_num = data_dict['Receiving Party']
-                # print('Trying to get client_name for', client_num)
-                client_name = translator.get(client_num, None)
-                # print('getting data for', client_name)
-                voicemail_data = self.src_files[r'Voice Mail'].get(client_name, None)
-                # print('Got data for', voicemail_data)
-                if voicemail_data:
-                    # print('checking whether', data_dict['Calling Party'], 'is in vm_data')
-                    call_instance = [d for d in voicemail_data if d['phone_number'] == data_dict['Calling Party']]
-                    # call_instance = voicemail_data.get(data_dict['Calling Party'], None)
-                    # print('This is my call instance', call_instance)
-                    if call_instance and abs(call_instance[0]['time'] - data_dict['End Time']) < timedelta(seconds=30):
-                        # print(call_instance)
-                        self.data_center.verified(sheet_name, 'Voicemail')
-                        # print('Claiming I set vm to verified for', sheet_name)
-
-        i_count = {}
-        print('**Verified Voicemail**')
-        for sheet_name, data_dict in self.data_center:
-            if data_dict['Voicemail'] == 'Verified':
-                if data_dict['Receiving Party'] == 7545:
-                    print(sheet_name)
-
-                # print(sheet_name)
-                # self.data_center.print_record(data_dict)
-                dup_info = i_count.get(
-                    data_dict['Receiving Party'], {
-                        'count': 0
-                    }
-                )
-                dup_info['count'] += 1
-                i_count[data_dict['Receiving Party']] = dup_info
-
-        self.data_center.print_record(i_count)
-        for sheet_name, data_dict in {sheet_name: data_dict for sheet_name, data_dict in self.data_center
-                                      if data_dict['Receiving Party'] == 7545 and data_dict['Voicemail'] == 'Verified'
-                                      }.items():
-            print(sheet_name)
-            self.data_center.print_record(data_dict)
-        print('completed iterating data center')
+        # print('**VERIFY VM**')
+        # self.data_center.print_record(self.src_files[r'Voice Mail']['Danaher'])
+        #
+        # print('**Unverified Voicemail**')
+        # for sheet_name, data_dict in self.data_center:
+        #     if data_dict['Voicemail']:
+        #         # print(sheet_name)
+        #         # self.data_center.print_record(data_dict)
+        #         client_num = data_dict['Receiving Party']
+        #         # print('Trying to get client_name for', client_num)
+        #         client_name = translator.get(client_num, None)
+        #         # print('getting data for', client_name)
+        #         voicemail_data = self.src_files[r'Voice Mail'].get(client_name, None)
+        #         # print('Got data for', voicemail_data)
+        #         if voicemail_data:
+        #             # print('checking whether', data_dict['Calling Party'], 'is in vm_data')
+        #             call_instance = [d for d in voicemail_data if d['phone_number'] == data_dict['Calling Party']]
+        #             # call_instance = voicemail_data.get(data_dict['Calling Party'], None)
+        #             # print('This is my call instance', call_instance)
+        #             if call_instance and abs(call_instance[0]['time'] - data_dict['End Time']) < timedelta(seconds=30):
+        #                 # print(call_instance)
+        #                 self.data_center.verified(sheet_name, 'Voicemail')
+        #                 # print('Claiming I set vm to verified for', sheet_name)
+        #
+        # i_count = {}
+        # print('**Verified Voicemail**')
+        # for sheet_name, data_dict in self.data_center:
+        #     if data_dict['Voicemail'] == 'Verified':
+        #         if data_dict['Receiving Party'] == 7545:
+        #             print(sheet_name)
+        #
+        #         # print(sheet_name)
+        #         # self.data_center.print_record(data_dict)
+        #         dup_info = i_count.get(
+        #             data_dict['Receiving Party'], {
+        #                 'count': 0
+        #             }
+        #         )
+        #         dup_info['count'] += 1
+        #         i_count[data_dict['Receiving Party']] = dup_info
+        #
+        # self.data_center.print_record(i_count)
+        # for sheet_name, data_dict in {sheet_name: data_dict for sheet_name, data_dict in self.data_center
+        #                               if data_dict['Receiving Party'] == 7545 and data_dict['Voicemail'] == 'Verified'
+        #                               }.items():
+        #     print(sheet_name)
+        #     self.data_center.print_record(data_dict)
+        # print('completed iterating data center')
 
     def __getitem__(self, item):
         pass
