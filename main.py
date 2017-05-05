@@ -49,6 +49,13 @@ def call(file, string_date=None):
     return Response(inner(), mimetype='text/html')
 
 
+@app.route('/', methods=['POST'])
+def main():
+    date_time = valid_dt(request.form['date'])
+    return str(date_time)
+    # return generic_ui.main(report_date=date_time.date())
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=5000, use_reloader=True)
 
