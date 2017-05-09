@@ -2,8 +2,8 @@ from datetime import timedelta
 from json import dumps
 
 
-from automated_sla_tool.src.ReportUtilities import ReportUtilities
-from automated_sla_tool.src.DataWorker import DataWorker
+from automated_sla_tool.src.report_utilities import ReportUtilities
+from automated_sla_tool.src.data_worker import DataWorker
 
 
 class DataCenter(object):

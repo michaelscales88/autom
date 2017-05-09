@@ -1,6 +1,6 @@
 import sqlite3 as lite
 from datetime import time, datetime
-from automated_sla_tool.src.QueryWriter import QueryWriter
+from automated_sla_tool.src.query_writer import QueryWriter
 
 
 class InternalDb(QueryWriter):

@@ -2,8 +2,8 @@ import inspect
 import traceback
 from time import sleep
 
-from automated_sla_tool.src.FinishedDecorator import FinishedDecorator as check_set
-from automated_sla_tool.src.StackedTracebackDecorator import StackedTracebackDecorator as tb_decorator
+from automated_sla_tool.src.finished_decorator import FinishedDecorator as check_set
+from automated_sla_tool.src.stacked_traceback_decorator import StackedTracebackDecorator as tb_decorator
 from automated_sla_tool.src.timeit import timeit
 
 

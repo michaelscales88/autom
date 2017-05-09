@@ -1,10 +1,10 @@
 from datetime import datetime, date, time, timedelta
 from dateutil.parser import parse
-from automated_sla_tool.src.BucketDict import BucketDict
-from automated_sla_tool.src.UtilityObject import UtilityObject
+from automated_sla_tool.src.bucket_dict import BucketDict
+from automated_sla_tool.src.utility_object import UtilityObject
 import pyexcel as pe
-from automated_sla_tool.src.ReportUtilities import ReportUtilities
-from automated_sla_tool.src.TupleKeyDict import TupleKeyDict
+from automated_sla_tool.src.report_utilities import ReportUtilities
+from automated_sla_tool.src.tuple_key_dict import TupleKeyDict
 import os
 import re
 from glob import glob as glob
@@ -20,21 +20,21 @@ import logging.config
 import iso8601
 from os import path
 from os.path import basename
-from automated_sla_tool.src.AppSettings import AppSettings
-from automated_sla_tool.src.InternalDb import InternalDb
+from automated_sla_tool.src.app_settings import AppSettings
+from automated_sla_tool.src.internal_db import InternalDb
 from time import sleep
 from collections import defaultdict, OrderedDict
 from automated_sla_tool.src.utilities import valid_dt
 import speech_recognition as sr
 from pyexcel import Sheet, get_book
-from automated_sla_tool.src.SqlWriter import SqlWriter as ps_write
+from automated_sla_tool.src.sql_writer import SqlWriter as ps_write
 import pypyodbc as py
 import types
 from urllib.request import urlopen
 import requests
-from automated_sla_tool.src.SlaReport import SlaReport
-from automated_sla_tool.src.GenericUi import GenericUi as Ui
-from automated_sla_tool.src.SqlWriter import SqlWriter as PgConn
+from automated_sla_tool.src.sla_report import SlaReport
+from automated_sla_tool.src.generic_ui import GenericUi as Ui
+from automated_sla_tool.src.sql_writer import SqlWriter as PgConn
 from automated_sla_tool.src.timeit import timeit
 from dateutil.parser import parse
 from re import split

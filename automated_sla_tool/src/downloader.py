@@ -1,7 +1,7 @@
 from re import search, M, I, DOTALL
 
 
-from automated_sla_tool.src.ImapConnection import ImapConnection
+from automated_sla_tool.src.imap_connection import ImapConnection
 from automated_sla_tool.src.utilities import valid_dt, valid_phone_number
 
 

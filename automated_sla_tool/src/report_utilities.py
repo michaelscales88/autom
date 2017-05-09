@@ -8,7 +8,7 @@ from re import split, sub
 from os.path import join, splitext, basename
 
 
-from automated_sla_tool.src.UtilityObject import UtilityObject
+from automated_sla_tool.src.utility_object import UtilityObject
 from automated_sla_tool.src.factory import get_loader
 
 

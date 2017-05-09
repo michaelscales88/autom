@@ -3,7 +3,7 @@ from os.path import join, splitext
 from datetime import timedelta
 
 
-from .Downloader import Downloader
+from .downloader import Downloader
 
 
 class Loader:

@@ -3,11 +3,11 @@ from os import getcwd
 from datetime import timedelta, datetime, time, date
 from dateutil.parser import parse
 
-from automated_sla_tool.src.ReportTemplate import ReportTemplate
-from automated_sla_tool.src.ReportUtilities import ReportUtilities
-from automated_sla_tool.src.FinalReport import FinalReport
-from automated_sla_tool.src.AppSettings import AppSettings
-from automated_sla_tool.src.DataCenter import DataCenter
+from automated_sla_tool.src.report_templates import ReportTemplate
+from automated_sla_tool.src.report_utilities import ReportUtilities
+from automated_sla_tool.src.final_report import FinalReport
+from automated_sla_tool.src.app_settings import AppSettings
+from automated_sla_tool.src.data_center import DataCenter
 
 
 class UniqueDict(dict):

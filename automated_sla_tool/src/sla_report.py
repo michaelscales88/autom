@@ -5,8 +5,8 @@ from collections import defaultdict, OrderedDict
 
 
 # TODO all instances that are being used should come from factory
-from automated_sla_tool.src.BucketDict import BucketDict
-from automated_sla_tool.src.AReport import AReport
+from automated_sla_tool.src.bucket_dict import BucketDict
+from automated_sla_tool.src.a_report import AReport
 from automated_sla_tool.src.utilities import valid_dt
 from automated_sla_tool.src.factory import get_vm
 

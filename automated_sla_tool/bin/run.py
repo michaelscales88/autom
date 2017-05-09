@@ -1,5 +1,5 @@
-from automated_sla_tool.src.GenericUi import GenericUi as Ui
-from automated_sla_tool.src.SlaReport import SlaReport
+from automated_sla_tool.src.generic_ui import GenericUi as Ui
+from automated_sla_tool.src.sla_report import SlaReport
 
 from datetime import datetime, timedelta
 

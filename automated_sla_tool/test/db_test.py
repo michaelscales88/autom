@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from collections import defaultdict
 
-from automated_sla_tool.src.DataCenter import DataCenter
+from automated_sla_tool.src.data_center import DataCenter
 
 
 def test():
@@ -14,11 +14,11 @@ def test():
     dc = DataCenter()
     meta = MetaData()
     Session = sessionmaker(bind=engine)
-
     meta.reflect(bind=engine)
     session = Session()
+
     statement = '''
-    Select Distinct c_call.call_id, c_event.*
+    Select Distinct c_call.call_id, c_call.dialed_party_number, c_event.*
     From c_event
         Inner Join c_call on c_event.call_id = c_call.call_id
     where
@@ -26,11 +26,12 @@ def test():
         c_call.call_direction = 1
     Order by c_call.call_id, c_event.event_id
     '''
+
     start = datetime.now()
     print('Start:', start)
     result = session.execute(statement)
     list_of_records = [dict(zip(row.keys(), row)) for row in result]
-    dc.print_record(list_of_records)
+
     for table in reversed(meta.sorted_tables):
         print(table)
     stop = datetime.now()
@@ -42,30 +43,51 @@ def test():
         key = record.pop(pk)
         call_data = grouped_records.get(
             key,
-            {
-                'Answered': False,  # This could be a configobj from AppSettings "Call Template"
+            {   # This could be a configobj from AppSettings "Call Template"
+                'Answered': False,                  # Answered occurs in the call ID
                 'Talking Duration': timedelta(0),
-                'Start Time': None,
-                'End Time': None,
+                'Start Time': None,                 # MIN time
+                'End Time': None,                   # MAX time
+                'Voicemail': False,                 # This needs a time check as well
+                'Calling Party': None,              # Calling Party @ "ringing" event
+                'Receiving Party': None,            # Receiving Party @ "ringing" event
+                'Call Group': None                  # Hunt Group from c_call table
             }
         )
+
+        # Hunt Group
+        if not call_data['Call Group']:
+            call_data['Call Group'] = record['dialed_party_number']
+
+        # Get calling party and receiving party from the 'Ringing' row
+        if record['event_type'] == 1:
+            call_data['Calling Party'] = record['calling_party']
+            call_data['Receiving Party'] = record['receiving_party']
+
+        # Talking Duration
         if record['event_type'] == 4:
-            print('Adding td for', key)
             call_data['Talking Duration'] += (record['end_time'] - record['start_time'])
 
+        # Voicemail event: store timedelta for later comparison
+        if record['event_type'] == 10:
+            print('checking a voicemail', key, record['end_time'] - record['start_time'])
+            call_data['Voicemail'] = record['end_time'] - record['start_time']
+
+        # MIN start time
         if call_data['Start Time'] and call_data['Start Time'] > record['start_time']:
             call_data['Start Time'] = record['start_time']
         else:
             call_data['Start Time'] = record['start_time']
 
+        # MAX end time
         if call_data['End Time'] and call_data['End Time'] < record['end_time']:
             call_data['End Time'] = record['end_time']
         else:
             call_data['End Time'] = record['end_time']
 
+        # An answered call has talking time
         if (
             not call_data['Answered']
-            and record['event_type'] == 4
             and call_data['Talking Duration'] > timedelta(0)
         ):
             call_data['Answered'] = True
@@ -73,19 +95,6 @@ def test():
         # DO WORK
         grouped_records[key] = call_data
     dc.print_record(grouped_records)
-
-    # grouped_records = defaultdict(list)
-    # for record in list_of_records:
-    #     key = record.pop('call_id')
-    #     grouped_records[key].append(record)
-    # print('grouped records')
-    # dc.print_record(grouped_records)
-    #
-    # print('Compiling records')
-    # for record, record_data in grouped_records.items():
-    #     print(record)
-    #     for rd in record_data:
-    #         print(rd['event_type'])
 
 
 if __name__ == '__main__':

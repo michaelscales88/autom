@@ -7,7 +7,7 @@ from datetime import date, datetime
 from os.path import join, isfile
 
 
-from automated_sla_tool.src.AppSettings import AppSettings
+from automated_sla_tool.src.app_settings import AppSettings
 
 
 class ImapConnection(IMAP4_SSL):

@@ -1,5 +1,5 @@
 import pypyodbc as ps
-from automated_sla_tool.src.QueryWriter import QueryWriter
+from automated_sla_tool.src.query_writer import QueryWriter
 from datetime import timedelta
 
 

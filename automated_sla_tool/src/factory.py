@@ -1,5 +1,5 @@
-from .Downloader import Downloader
-from .Loader import Loader
+from .downloader import Downloader
+from .loader import Loader
 
 
 def get_loader():

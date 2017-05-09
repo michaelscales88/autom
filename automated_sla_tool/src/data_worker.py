@@ -3,8 +3,8 @@ from json import dumps
 from datetime import datetime
 
 
-from automated_sla_tool.src.FnLib import FnLib
-from automated_sla_tool.src.ReportUtilities import ReportUtilities
+from automated_sla_tool.src.fn_lib import FnLib
+from automated_sla_tool.src.report_utilities import ReportUtilities
 
 
 class DataWorker(object):

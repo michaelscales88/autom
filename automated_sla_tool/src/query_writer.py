@@ -5,7 +5,7 @@ from collections import OrderedDict, defaultdict
 from numbers import Integral
 from json import dumps
 
-from automated_sla_tool.src.AppSettings import AppSettings
+from automated_sla_tool.src.app_settings import AppSettings
 from automated_sla_tool.src.utilities import DateTimeEncoder
 
 

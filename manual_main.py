@@ -1,4 +1,4 @@
-from automated_sla_tool.bin.generic_ui import main
+from automated_sla_tool.bin.run import main
 from automated_sla_tool.src.utilities import valid_dt
 
 

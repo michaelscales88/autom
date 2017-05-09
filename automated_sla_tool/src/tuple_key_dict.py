@@ -1,4 +1,4 @@
-from automated_sla_tool.src.TypeDecorator import TypeDecorator
+from automated_sla_tool.src.type_decorator import TypeDecorator
 
 
 class TupleKeyDict(object):
