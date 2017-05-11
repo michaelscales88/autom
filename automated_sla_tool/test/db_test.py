@@ -7,7 +7,7 @@ from collections import defaultdict
 from automated_sla_tool.src.data_center import DataCenter
 
 
-def test():
+def test(query_date):
     pk = 'call_id'
     engine = create_engine('postgres://Chronicall:ChR0n1c@ll1337@10.1.3.17:9086/chronicall')
 
@@ -22,10 +22,10 @@ def test():
     From c_event
         Inner Join c_call on c_event.call_id = c_call.call_id
     where
-        to_char(c_call.start_time, 'YYYY-MM-DD') = '2017-05-01' and
+        to_char(c_call.start_time, 'YYYY-MM-DD') = '{date}' and
         c_call.call_direction = 1
     Order by c_call.call_id, c_event.event_id
-    '''
+    '''.format(date=str(query_date))
 
     start = datetime.now()
     print('Start:', start)
@@ -94,8 +94,8 @@ def test():
 
         # DO WORK
         grouped_records[key] = call_data
-    dc.print_record(grouped_records)
+    return grouped_records
 
 
 if __name__ == '__main__':
-    test()
+    test(query_date='2017-05-01')

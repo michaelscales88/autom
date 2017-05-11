@@ -381,7 +381,7 @@ class SlaReport(AReport):
         report_details = defaultdict(list)
         for row_name in report.rownames:
             try:
-                client = int(report[row_name, 'Internal Party'])
+                client = self.util.phone_number(report[row_name, 'Internal Party'])
             except ValueError:
                 client = self.handle_read_value_error(row_name)
             finally:
