@@ -1,11 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import (
     Column, Integer, String,
     TypeDecorator, DateTime
 )
+from decimal import Decimal
+from dateutil import parser
 from sqlalchemy.ext import mutable
 from sqlalchemy.ext.declarative import declarative_base
-from json import loads, dumps
+from json import loads, dumps, JSONEncoder
 
 
 from automated_sla_tool.src.report_utilities import ReportUtilities
@@ -14,15 +16,47 @@ from automated_sla_tool.src.report_utilities import ReportUtilities
 Base = declarative_base()
 
 
+CONVERTERS = {
+    'datetime': parser.parse,
+    'decimal': Decimal,
+    'timedelta': ReportUtilities.to_td
+}
+
+
+class MyEncoder(JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, (datetime,)):
+            return {"val": obj.isoformat(), "_spec_type": "datetime"}
+        elif isinstance(obj, (Decimal,)):
+            return {"val": str(obj), "_spec_type": "decimal"}
+        elif isinstance(obj, (timedelta,)):
+            return {"val": str(obj), "_spec_type": "timedelta"}
+        else:
+            print('i am getting into the super and i bet this is breaking shit')
+            return super().default(obj)
+
+
+def object_hook(obj):
+    _spec_type = obj.get('_spec_type')
+    if not _spec_type:
+        return obj
+
+    if _spec_type in CONVERTERS:
+        return CONVERTERS[_spec_type](obj['val'])
+    else:
+        raise Exception('Unknown {}'.format(_spec_type))
+
+
 class JsonEncodedDict(TypeDecorator):
     """Enables JSON storage by encoding and decoding on the fly."""
     impl = String
 
     def process_bind_param(self, value, dialect):
-        return dumps(value, default=ReportUtilities.datetime_handler)
+        return dumps(value, cls=MyEncoder)
 
     def process_result_value(self, value, dialect):
-        return loads(value, object_hook=ReportUtilities.datetime_handler)
+        return loads(value, object_hook=object_hook)
 
 
 class FlexibleStorage(Base):
@@ -65,8 +99,8 @@ class SlaStorage(FlexibleStorage):
     data = Column('json_data', JsonEncodedDict)
     created_on = Column('created_on', DateTime(), default=datetime.now)
     updated_on = Column('updated_on', DateTime(), default=datetime.now, onupdate=datetime.now)
-    start = Column('start_time', DateTime(timezone=True), nullable=False)
-    end = Column('end_time', DateTime(timezone=True), nullable=False)
+    start = Column('start_time', DateTime(timezone=True))
+    end = Column('end_time', DateTime(timezone=True))
 
     __mapper_args__ = {
         'concrete': True

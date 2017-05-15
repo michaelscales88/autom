@@ -283,6 +283,13 @@ class Test(object):
 
 
 def test():
+    dt = datetime.today()
+    print(isinstance(dt, datetime))
+    td = timedelta(0)
+    print(isinstance(td, timedelta))
+    str_td = str(td)
+    print(str_td)
+    print(parse(str_td).time())
     print(platform.system() == 'Windows')
     # test = ReportUtilities()
     # test.open_focus('excel', FILEPATH)
