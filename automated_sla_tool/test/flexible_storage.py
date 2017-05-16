@@ -24,7 +24,7 @@ CONVERTERS = {
 
 
 class MyEncoder(JSONEncoder):
-
+    """Convert non-serializable data into a value which we can store in our dB"""
     def default(self, obj):
         if isinstance(obj, (datetime,)):
             return {"val": obj.isoformat(), "_spec_type": "datetime"}
@@ -33,11 +33,11 @@ class MyEncoder(JSONEncoder):
         elif isinstance(obj, (timedelta,)):
             return {"val": str(obj), "_spec_type": "timedelta"}
         else:
-            print('i am getting into the super and i bet this is breaking shit')
             return super().default(obj)
 
 
 def object_hook(obj):
+    """Convert json data from its serialized value"""
     _spec_type = obj.get('_spec_type')
     if not _spec_type:
         return obj
@@ -99,6 +99,8 @@ class SlaStorage(FlexibleStorage):
     data = Column('json_data', JsonEncodedDict)
     created_on = Column('created_on', DateTime(), default=datetime.now)
     updated_on = Column('updated_on', DateTime(), default=datetime.now, onupdate=datetime.now)
+    unique_id1 = Column('unique_id1', Integer)
+    unique_id2 = Column('unique_id2', Integer)
     start = Column('start_time', DateTime(timezone=True))
     end = Column('end_time', DateTime(timezone=True))
 

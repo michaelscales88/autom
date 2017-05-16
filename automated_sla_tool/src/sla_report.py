@@ -69,6 +69,7 @@ class SlaReport(AReport):
                                         filters=call_details_filters)
         self.compile_call_details()
         self.src_files[r'Call Details'].name = 'call_details'   # this is a hack for the Client Accum
+        self.src_files[r'Call Details'].save_as(filename='call_details_test.xlsx')
         self.src_files[r'Group Abandoned Calls'] = self.util.collate_wb_to_sheet(
             wb=self.src_files[r'Group Abandoned Calls']
         )

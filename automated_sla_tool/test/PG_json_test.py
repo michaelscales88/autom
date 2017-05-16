@@ -27,34 +27,45 @@ def session_data(session_date=None):
 
     # add records from data_src to the local db
     for call_id, call_data_dict in test(query_date=session_date.strftime('%Y-%m-%d')).items(): # Get data from PG connection
+        # call_data = SlaStorage(
+        #     id=call_id,
+        #     start=call_data_dict['Start Time'],
+        #     end=call_data_dict['End Time'],
+        #     data=call_data_dict
+        # )
         call_data = SlaStorage(
             id=call_id,
-            start=call_data_dict['Start Time'],
-            end=call_data_dict['End Time'],
+            start=call_data_dict.pop('Start Time'),
+            end=call_data_dict.pop('End Time'),
+            unique_id1=call_data_dict.pop('Unique Id1'),
+            unique_id2=call_data_dict.pop('Unique Id2'),
             data=call_data_dict
         )
         session.add(call_data)
     session.commit()
 
-    # for row in session.query(SlaStorage).all():
-    #     print(row)
+    # from json import dumps
+    # from automated_sla_tool.test.flexible_storage import MyEncoder
+    # for row in session.query(SlaStorage).filter(func.date(session_date)).all():
+    #     if row.unique_id == 7521:
+    #         print(row.id)
+    #         print(dumps(row.data['Events'], cls=MyEncoder, indent=4))
 
-    for row in session.query(SlaStorage).filter(func.date(session_date)).all():
-        yield row
+    # print(
+    #     row.id,
+    #     row.data['Talking Duration'],
+    #     (row.end - row.start) - row.data['Talking Duration'],   # Wait = Call Duration - Talk Duration - Hold
+    #     row.data['Hold Events']                                 # Hold = 'Hold', 'Transfer Hold', 'Park'
+    # )
+
+    # for row in session.query(SlaStorage).filter(func.date(session_date)).all():
+    #     if row.data["Call Group"] == '7521':
+    #         print(row.id)
+    #         print(dumps(row.data, cls=MyEncoder, indent=4))
     #
-    # # Verify the PK doesn't break the insert if the news records preceed the lowest id in the db
-    # for call_id, call_data_dict in test(query_date='2017-04-28').items():   # Get data from PG connection
-    #     session.add(
-    #         SlaStorage(
-    #             id=call_id,
-    #             data=call_data_dict
-    #         )
-    #     )
-    # session.commit()
-    #
-    # for row in session.query(SlaStorage).all():
-    #     # dumps(row, default=ReportUtilities.datetime_handler)
-    #     print(row)
+    # for row in session.query(SlaStorage).filter(func.date(session_date)).all():
+    #     yield row
+    return session.query(SlaStorage).filter(func.date(session_date)).all()
 
 
 if __name__ == '__main__':
