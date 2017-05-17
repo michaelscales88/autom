@@ -47,9 +47,9 @@ def session_data(session_date=None):
     # from json import dumps
     # from automated_sla_tool.test.flexible_storage import MyEncoder
     # for row in session.query(SlaStorage).filter(func.date(session_date)).all():
-    #     if row.unique_id == 7521:
-    #         print(row.id)
-    #         print(dumps(row.data['Events'], cls=MyEncoder, indent=4))
+    #     print(row.id)
+    #     print(dumps(row.data['Event Summary'], cls=MyEncoder, indent=4))
+
 
     # print(
     #     row.id,

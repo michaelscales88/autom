@@ -69,13 +69,14 @@ class SlaReport(AReport):
                                         filters=call_details_filters)
         self.compile_call_details()
         self.src_files[r'Call Details'].name = 'call_details'   # this is a hack for the Client Accum
-        self.src_files[r'Call Details'].save_as(filename='call_details_test.xlsx')
+        # self.src_files[r'Call Details'].save_as(filename='call_details_test.xlsx')
         self.src_files[r'Group Abandoned Calls'] = self.util.collate_wb_to_sheet(
             wb=self.src_files[r'Group Abandoned Calls']
         )
         self.util.apply_format_to_sheet(sheet=(self.src_files[r'Group Abandoned Calls']),
                                         one_filter=self.util.answered_filter)
         self.scrutinize_abandon_group()
+        print('passed scrutinize')
         if not self.test_mode:
             self.src_files[r'Voice Mail'] = self.modify_vm(get_vm(self))
         # else:
@@ -84,8 +85,8 @@ class SlaReport(AReport):
     def new_run(self):
         ans_cid_by_client = self.group_cid_by_client(self.src_files[r'Call Details'])
         lost_cid_by_client = self.group_cid_by_client(self.src_files[r'Group Abandoned Calls'])
-        print(ans_cid_by_client)
-        print(lost_cid_by_client)
+        # print(ans_cid_by_client[7592])
+        # print(lost_cid_by_client[7592])
         print(self.src_files[r'Voice Mail'])
         # TODO: this should be generator that handles full_service or normal day of the week
         # TODO 2: AppSettings needs to autodetect int, bool, ts, text etc
@@ -353,6 +354,10 @@ class SlaReport(AReport):
                 else:
                     last_call = self.parse_to_sec(self.src_files[r'Group Abandoned Calls'][call_id, 'Start Time'])
                     if abs(last_call - prev_call) <= 60:
+                        print(self.src_files[r'Group Abandoned Calls'][call_id, 'Internal Party'],
+                              type(self.src_files[r'Group Abandoned Calls'][call_id, 'Internal Party']))
+                        # if self.src_files[r'Group Abandoned Calls'][call_id, 'Internal Party'] == '7545':
+                        #     print('Removing a call', call_id)
                         self.src_files[r'Group Abandoned Calls'].delete_named_row_at(call_id)
 
     def remove_calls_less_than_twenty_seconds(self):

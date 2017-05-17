@@ -71,6 +71,8 @@ class FlexibleStorage(Base):
     data = Column('json_data', JsonEncodedDict)
     created_on = Column('created_on', DateTime(), default=datetime.now)
     updated_on = Column('updated_on', DateTime(), default=datetime.now, onupdate=datetime.now)
+    start = Column('start_time', DateTime(timezone=True))
+    end = Column('end_time', DateTime(timezone=True))
 
     @staticmethod
     def mutable():
@@ -99,10 +101,10 @@ class SlaStorage(FlexibleStorage):
     data = Column('json_data', JsonEncodedDict)
     created_on = Column('created_on', DateTime(), default=datetime.now)
     updated_on = Column('updated_on', DateTime(), default=datetime.now, onupdate=datetime.now)
-    unique_id1 = Column('unique_id1', Integer)
-    unique_id2 = Column('unique_id2', Integer)
     start = Column('start_time', DateTime(timezone=True))
     end = Column('end_time', DateTime(timezone=True))
+    unique_id1 = Column('receiving_party', Integer)
+    unique_id2 = Column('calling_party', Integer)
 
     __mapper_args__ = {
         'concrete': True

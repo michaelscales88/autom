@@ -54,7 +54,8 @@ def test(query_date):
                 'End Time': None,  # MAX time
                 'Unique Id1': None,  # Hunt Group from c_call table
                 'Unique Id2': None,  # Hunt Group from c_call table
-                'Events': {}
+                'Events': {},
+                'Event Summary': {}
             }
         )
 
@@ -78,49 +79,17 @@ def test(query_date):
             cached_event['End Time'] = record['end_time']
 
         cached_event['Events'][event_id] = record                # Preserve event order / Serialization breaks
-        cached_events[key] = cached_event
-        # # Hunt Group
-        # if not cached_events['Call Group']:
-        #     cached_events['Call Group'] = record['dialed_party_number']
-        #
-        # # Get calling party and receiving party from the 'Ringing' row
-        # if record['event_type'] == 1:
-        #     cached_events['Calling Party'] = record['calling_party']
-        #     cached_events['Receiving Party'] = record['receiving_party']
-        #
-        # # Talking Duration
-        # if record['event_type'] == 4:
-        #     cached_events['Talking Duration'] += (record['end_time'] - record['start_time'])
-        #
-        # # Voicemail event: store timedelta for later comparison
-        # if record['event_type'] == 10:
-        #     cached_events['Voicemail'] = record['end_time'] - record['start_time']
-        #
-        # # MIN start time
-        # if not cached_events['Start Time']:   # Set if none
-        #     cached_events['Start Time'] = record['start_time']
-        # elif cached_events['Start Time'] > record['start_time']:  # or with a new lowest start_time
-        #     cached_events['Start Time'] = record['start_time']
-        #
-        # # MAX end time
-        # if not cached_events['End Time']:     # Set if none
-        #     cached_events['End Time'] = record['end_time']
-        # elif cached_events['End Time'] < record['end_time']:      # or with a new highest end_time
-        #     cached_events['End Time'] = record['end_time']
-        #
-        # # An answered call has talking time
-        # if (
-        #     not cached_events['Answered']
-        #     and cached_events['Talking Duration'] > timedelta(0)
-        # ):
-        #     cached_events['Answered'] = True
-        #
-        # # DO WORK
-        # grouped_records[key] = cached_events
 
-    # for key, record in cached_events.items():
-    #     print(key)
-    #     print(record)
+        # Create a summary of the event_types
+        event_accum = cached_event['Event Summary'].get(
+            record['event_type'],
+            timedelta(0)
+        )
+        event_accum += record['end_time'] - record['start_time']
+        cached_event['Event Summary'][record['event_type']] = event_accum
+
+        cached_events[key] = cached_event
+
     return cached_events
 
 

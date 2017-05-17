@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import datetime as dt
 from pyexcel import Sheet
 from collections import OrderedDict
@@ -11,6 +11,57 @@ from automated_sla_tool.src.app_settings import AppSettings
 from automated_sla_tool.src.report_utilities import ReportUtilities
 
 _settings = r'C:\Users\mscales\Desktop\Development\automated_sla_tool\automated_sla_tool\settings\db_report_test'
+
+test_client = 7561
+
+
+def match(record_list, match_val=None):
+    matched_records = []
+
+    # print(
+    #     'Matching to',
+    #     getattr(match_record, 'id'),
+    #     getattr(match_record, 'unique_id2'),
+    #     getattr(match_record, 'unique_id1')
+    # )
+    for record in record_list:
+        # print('Comparing', getattr(record, 'id'))
+        match0 = (
+            getattr(match_val, 'data')['Event Summary'].get('4', timedelta(0))
+            == getattr(record, 'data')['Event Summary'].get('4', timedelta(0))
+            == timedelta(0)
+        )
+        # print(
+        #     match0,
+        #     getattr(match_val, 'data')['Event Summary'].get('4', timedelta(0)),
+        #     getattr(record, 'data')['Event Summary'].get('4', timedelta(0))
+        # )
+
+        match1 = getattr(match_val, 'unique_id2') == getattr(record, 'unique_id2')
+        # print(match1, getattr(record, 'unique_id2'))
+
+        match2 = getattr(match_val, 'unique_id1') == getattr(record, 'unique_id1')
+        # print(match2, getattr(record, 'unique_id1'))
+
+        match3 = (getattr(record, 'start') - getattr(match_val, 'end')) < timedelta(seconds=61)
+        # print(match3, getattr(record, 'start') - getattr(match_record, 'end'))
+
+        all_matched = all(
+            [
+                match0,
+                match1,
+                match2,
+                match3
+            ]
+        )
+
+        # print(all_matched)
+
+        if all_matched:
+            # print('Perform match behavior', getattr(record, 'id'))
+            matched_records.append(getattr(record, 'id'))
+
+    return matched_records
 
 
 def main():
@@ -39,7 +90,7 @@ def main():
         colnames=output_headers
     )
 
-    for client_num in settings['Clients']:
+    for client_num in (*settings['Clients'], 'Summary'):
         additional_row = OrderedDict(
             [
                 (client_num,
@@ -52,179 +103,113 @@ def main():
     records = session_data(datetime.today().date().replace(year=2017, month=5, day=1))
 
     # Filter Step
-    # for key, group in groupby(records, lambda item: item.unique_id):
-    #     print(key)
-    #     print([item.id for item in group])
+    try:
+        for x in range(0, len(records)):
+            match_record = records[x]
+            matches = match(records[x+1:], match_val=match_record)
+            if (
+                    len(matches) > 1
+                    and (match_record.end - match_record.start > timedelta(seconds=20))
+                    and match_record.data['Event Summary'].get('10', timedelta(0)) == timedelta(0)
+            ):
+                # print('Matched value:', match_record)
+                for a_match in matches:
+                    # if a_match == 1497228:
+                    #     print(match_record.id, matches)
+                    for i, o in enumerate(records):
+                        if getattr(o, 'id') == a_match:
+                            del records[i]
+                            # print('Removed', a_match, 'at', i)
+                            break
 
-    i_count = {}
-    for record in records:
-        # print(record.id, record.unique_id2, record.unique_id1)
-        dup_event = i_count.get(
-            record.unique_id2, {
-                'count': 0,
-                'call_id': []
-            }
-        )
-        dup_event['count'] += 1
-        dup_event['call_id'].append(record.id)
-
-        i_count[record.unique_id2] = dup_event
-
-    # print(dumps(i_count, indent=4))
-    print(len(records))
-    potential_duplicates = []
-    for k, v in i_count.items():
-        if v['count'] > 1:
-            potential_duplicates.append(v['call_id'])
-    print(len(potential_duplicates), potential_duplicates)
-    print(records)
-    for call_ids in potential_duplicates:
-        print('searching', [call_id for call_id in reversed(call_ids)])
-        for call_id in reversed(call_ids):
-            for x in records:
-                if x.id == call_id:
-                    print("i found it!")
-                    print(x.id)
-                    break
-        # try:
-        #     prev_call = records[next(potential_duplicates)]
-        # except (StopIteration, IndexError) as e:
-        #     print(e, call_ids)  # end
-        # else:
-        #     try:
-        #         last_call = records[call_ids]
-        #         print("**NOTE IM COMPARING**")
-        #         # print(prev_call)
-        #         # print(last_call)
-        #         if abs(last_call.start - prev_call.end) <= timedelta(seconds=60):
-        #             print('i deleted some duplicates')
-        #             del records[call_ids]
-        #     except IndexError as e:
-        #         print('Index Error', call_ids)
+    except IndexError:
+        # x has moved past the end of the list of remaining records
+        pass
 
     # Process Step
     for record in records:
         row_name = str(record.unique_id1)    # This is how we bind our client settings
-        if row_name in test_output.rownames:
-            call_summary = {}
-            for event_id, event in sorted(record.data['Events'].items()):
-                event_accum = call_summary.get(
-                    event['event_type'],
-                    timedelta(0)
-                )
-                event_accum += event['end_time'] - event['start_time']
-                call_summary[event['event_type']] = event_accum
-
-            # summary_of_calls[record.id] = call_summary
+        if row_name in test_output.rownames and time(hour=7) <= record.start.time() <= time(hour=19):
             call_duration = record.end - record.start
-            talking_time = call_summary.get(4, timedelta(0))
-            voicemail_time = call_summary.get(10, timedelta(0))
+            talking_time = record.data['Event Summary'].get('4', timedelta(0))
+            voicemail_time = record.data['Event Summary'].get('10', timedelta(0))
             hold_time = sum(
-                [call_summary.get(event_type, timedelta(0)) for event_type in (5, 6, 7)],
+                [record.data['Event Summary'].get(event_type, timedelta(0)) for event_type in ('5', '6', '7')],
                 timedelta(0)
             )
             wait_duration = call_duration - talking_time - hold_time
             # DO the rest of the output work
             if talking_time > timedelta(0):
+                if record.unique_id1 == test_client:
+                    print('I am an answered call', record.id)
                 test_output[row_name, 'I/C Presented'] += 1
                 test_output[row_name, 'I/C Answered'] += 1
                 test_output[row_name, 'Average Incoming Duration'] += talking_time
                 test_output[row_name, 'Average Wait Answered'] += wait_duration
 
+                # Adding to Summary
+                test_output['Summary', 'I/C Presented'] += 1
+                test_output['Summary', 'I/C Answered'] += 1
+                test_output['Summary', 'Average Incoming Duration'] += talking_time
+                test_output['Summary', 'Average Wait Answered'] += wait_duration
+
                 # Qualify calls by duration
                 if wait_duration <= timedelta(seconds=15):
                     test_output[row_name, 'Calls Ans Within 15'] += 1
+                    test_output['Summary', 'Calls Ans Within 15'] += 1
 
                 elif wait_duration <= timedelta(seconds=30):
                     test_output[row_name, 'Calls Ans Within 30'] += 1
+                    test_output['Summary', 'Calls Ans Within 30'] += 1
 
                 elif wait_duration <= timedelta(seconds=45):
                     test_output[row_name, 'Calls Ans Within 45'] += 1
+                    test_output['Summary', 'Calls Ans Within 45'] += 1
 
                 elif wait_duration <= timedelta(seconds=60):
                     test_output[row_name, 'Calls Ans Within 60'] += 1
+                    test_output['Summary', 'Calls Ans Within 60'] += 1
 
                 elif wait_duration <= timedelta(seconds=999):
                     test_output[row_name, 'Calls Ans Within 999'] += 1
+                    test_output['Summary', 'Calls Ans Within 999'] += 1
 
                 else:
                     test_output[row_name, 'Call Ans + 999'] += 1
+                    test_output['Summary', 'Call Ans + 999'] += 1
 
                 if wait_duration > test_output[row_name, 'Longest Waiting Answered']:
                     test_output[row_name, 'Longest Waiting Answered'] = wait_duration
 
+                if wait_duration > test_output['Summary', 'Longest Waiting Answered']:
+                    test_output['Summary', 'Longest Waiting Answered'] = wait_duration
+
             elif voicemail_time > timedelta(seconds=20):
+                if record.unique_id1 == test_client:
+                    print('I am a voice mail call', record.id)
                 test_output[row_name, 'I/C Presented'] += 1
                 test_output[row_name, 'Voice Mails'] += 1
                 test_output[row_name, 'Average Wait Lost'] += call_duration
 
+                test_output['Summary', 'I/C Presented'] += 1
+                test_output['Summary', 'Voice Mails'] += 1
+                test_output['Summary', 'Average Wait Lost'] += call_duration
+
             elif call_duration > timedelta(seconds=20):
+                if record.unique_id1 == test_client:
+                    print('I am a lost call', record.id)
                 test_output[row_name, 'I/C Presented'] += 1
                 test_output[row_name, 'I/C Lost'] += 1
                 test_output[row_name, 'Average Wait Lost'] += call_duration
 
+                test_output['Summary', 'I/C Presented'] += 1
+                test_output['Summary', 'I/C Lost'] += 1
+                test_output['Summary', 'Average Wait Lost'] += call_duration
+
             else:
                 pass
 
-
-    # Update output from data source
-    # for record in records:
-    #     call_group = str(record.data['Call Group'])
-    #     client_data = settings['Clients'].get(call_group, None)  # Determine if this is a valid client/track 24 hr cli
-    #     call_duration = record.data['End Time'] - record.data['Start Time']
-    #     wait_duration = call_duration - record.data['Talking Duration']
-    #     print(call_group, wait_duration)
-    #     if client_data and (record.start.time() > dt.time()):
-    #         print(dumps(record.data, cls=MyEncoder))
-    #         if record.data['Answered']:
-    #             # Do answered work
-    #             test_output[call_group, 'I/C Answered'] += 1
-    #             test_output[call_group, 'I/C Presented'] += 1
-    #             test_output[call_group, 'Average Incoming Duration'] += record.data['Talking Duration']
-    #             test_output[call_group, 'Average Wait Answered'] += wait_duration
-    #             if call_group == '7521':
-    #                 print('SWS duration', record.id, wait_duration)
-    #
-    #             # Qualify calls by duration
-    #             if wait_duration <= timedelta(seconds=15):
-    #                 test_output[call_group, 'Calls Ans Within 15'] += 1
-    #
-    #             elif wait_duration <= timedelta(seconds=30):
-    #                 test_output[call_group, 'Calls Ans Within 30'] += 1
-    #
-    #             elif wait_duration <= timedelta(seconds=45):
-    #                 test_output[call_group, 'Calls Ans Within 45'] += 1
-    #
-    #             elif wait_duration <= timedelta(seconds=60):
-    #                 test_output[call_group, 'Calls Ans Within 60'] += 1
-    #
-    #             elif wait_duration <= timedelta(seconds=999):
-    #                 test_output[call_group, 'Calls Ans Within 999'] += 1
-    #
-    #             else:
-    #                 test_output[call_group, 'Call Ans + 999'] += 1
-    #
-    #             if not test_output[call_group, 'Longest Waiting Answered']:
-    #                 test_output[call_group, 'Longest Waiting Answered'] = wait_duration
-    #             elif wait_duration > test_output[call_group, 'Longest Waiting Answered']:
-    #                 test_output[call_group, 'Longest Waiting Answered'] = wait_duration
-    #
-    #         else:
-    #             # Do lost work
-    #             if record.data['Voicemail'] and record.data['Voicemail'] > timedelta(seconds=20):
-    #                 test_output[call_group, 'Voice Mails'] += 1
-    #                 test_output[call_group, 'I/C Presented'] += 1
-    #
-    #             elif (record.data['End Time'] - record.data['Start Time']) > timedelta(seconds=20):
-    #                 test_output[call_group, 'I/C Lost'] += 1
-    #                 test_output[call_group, 'I/C Presented'] += 1
-    #                 test_output[call_group, 'Average Wait Lost'] += call_duration
-    #
-    #             else:
-    #                 print('didnt count')
-
-    # Update programmatic columns
-    # Finalize Step
+    # Finalize step
     for row in test_output.rownames:
         try:
             test_output[row, 'Incoming Answered (%)'] = test_output[row, 'I/C Answered'] / test_output[
@@ -267,7 +252,7 @@ def main():
         except ZeroDivisionError:
             test_output[row, 'PCA'] = 0.0
 
-    # print(test_output)
+    print(test_output)
 
 
 if __name__ == '__main__':
