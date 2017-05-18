@@ -1,11 +1,9 @@
 from platform import system
 from datetime import datetime, date, time, timedelta
-from os import listdir, rename
 from dateutil.parser import parse
 from pyexcel import Book, Sheet, get_book
 from subprocess import Popen
-from re import split, sub
-from os.path import join, splitext, basename
+from re import split
 
 
 from automated_sla_tool.src.utility_object import UtilityObject
@@ -100,6 +98,11 @@ class ReportUtilities(UtilityObject):
         except (AttributeError, ValueError) as e:
             print(e, v)
         return v
+
+    @staticmethod
+    def parse_to_sec(dt=None):
+        dt_t = ReportUtilities.safe_parse(dt).time()
+        return ReportUtilities.convert_sec(h=dt_t.hour, m=dt_t.minute, s=dt_t.second)
 
     @staticmethod
     def apply_format_to_sheet(sheet, filters=(), one_filter=None):

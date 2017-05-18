@@ -203,56 +203,7 @@ class ImapConnection(IMAP4_SSL):
                     with NamedTemporaryFile(mode='w+b', suffix=f_ext) as f:  # change this back to delete=False for scribing
                         f.write(part.get_payload(decode=True))
                         f.seek(0)
-                        # wf = wav.open('output.wav', mode='wb')
-                        # wf.setparams((wo.getparams()))
-                        # for i in range(0, wo.getnframes()):
-                        #     wf.writeframes(wo.readframes(i))
-                        # wf.close()
-                        # print('closed wav file')
-                        # (nchannels, sampwidth, framerate, nframes, comptype, compname) = wo.getparams()
-                        # wf = wav.open('output.wav', 'wb')
-
-                        # print(type(wf))
-                        # wf.close()
-                        # print(f.name)
-                        # print(file_magic.from_file(f.name))
                         payload[f_name] = f
-                    #     stream = PyAudio()
-                # if part.get_content_type() == 'audio/wav':
-                #     with wav.open(mode='rb') as f:
-                #         f.write(part.get_payload(decode=True))
-                #         f.seek(0)
-                #         payload[f_name] = get_book(
-                #             file_type=f_ext,
-                #             file_content=f.read()
-                #         )
-                #     payload[f_name] = part.get_payload(decode=True)
-                # file_magic = magic.Magic(magic_file=r"C:\Users\mscales\Desktop\Development\automated_sla_tool\magic.mgc")
-                # with NamedTemporaryFile(mode='w+b', suffix=f_ext) as f:
-                #     f.write(part.get_payload(decode=True))
-                #     f.seek(0)
-                #     if f_ext == 'xlsx':
-                #         payload[f_name] = get_book(
-                #             file_type=f_ext,
-                #             file_content=f.read()
-                #         )
-                #     if f_ext == 'wav':
-                        # print('trying to open wav file')
-                        # with wav.open(f, mode='rb') as wo:
-                        #     wf = wav.open('output.wav', mode='wb')
-                        #     wf.setparams((wo.getparams()))
-                        #     for i in range(0, wo.getnframes()):
-                        #         wf.writeframes(wo.readframes(i))
-                        #     wf.close()
-                        #     print('closed wav file')
-                        #     # (nchannels, sampwidth, framerate, nframes, comptype, compname) = wo.getparams()
-                        #     # wf = wav.open('output.wav', 'wb')
-
-                        #     print(type(wf))
-                        #     wf.close()
-                        # print(f.name)
-                        # print(file_magic.from_file(f.name))
-                        # payload[f_name] = f
         return payload
 
     # Iterator

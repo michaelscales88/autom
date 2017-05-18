@@ -81,7 +81,6 @@ class FinalReport(Sheet):
         # TODO could add colname and add values directly to final report **mind not handle issues well**
         new_rows = Sheet()
         new_rows.row += [column]
-        # self.colnames += column
         for row in self.rows():
             row_w_headers = dict(zip(self.colnames, row))
             new_rows.row += f(row_w_headers)

@@ -12,7 +12,11 @@ from automated_sla_tool.src.report_utilities import ReportUtilities
 
 _settings = r'C:\Users\mscales\Desktop\Development\automated_sla_tool\automated_sla_tool\settings\db_report_test'
 
-test_client = 7561
+test_client = 7523
+
+
+def chop_microseconds(delta):
+    return delta - timedelta(microseconds=delta.microseconds)
 
 
 def match(record_list, match_val=None):
@@ -100,7 +104,7 @@ def main():
         )
         test_output.extend_rows(additional_row)
 
-    records = session_data(datetime.today().date().replace(year=2017, month=5, day=1))
+    records = session_data(datetime.today().date().replace(year=2017, month=5, day=17))
 
     # Filter Step
     try:
@@ -212,42 +216,49 @@ def main():
     # Finalize step
     for row in test_output.rownames:
         try:
-            test_output[row, 'Incoming Answered (%)'] = test_output[row, 'I/C Answered'] / test_output[
-                row, 'I/C Presented']
+            test_output[row, 'Incoming Answered (%)'] = '{0:.1%}'.format(
+                test_output[row, 'I/C Answered'] / test_output[row, 'I/C Presented']
+            )
         except ZeroDivisionError:
-            test_output[row, 'Incoming Answered (%)'] = 0.0
-        test_output[row, 'Incoming Lost (%)'] = 1 - test_output[row, 'Incoming Answered (%)']  # Lazy percentage
+            test_output[row, 'Incoming Answered (%)'] = 1.0
+
+        try:
+            test_output[row, 'Incoming Lost (%)'] = '{0:.1%}'.format(
+                (test_output[row, 'I/C Lost'] + test_output[row, 'I/C Lost'])
+                / test_output[row, 'I/C Presented']
+            )
+        except ZeroDivisionError:
+            test_output[row, 'Incoming Lost (%)'] = 0.0
 
         try:
             test_output[row, 'Average Incoming Duration'] = str(
-                test_output[row, 'Average Incoming Duration'] / test_output[
-                    row, 'I/C Answered']
+                chop_microseconds(test_output[row, 'Average Incoming Duration'] / test_output[row, 'I/C Answered'])
             )
         except ZeroDivisionError:
             test_output[row, 'Average Incoming Duration'] = '0:00:00'
 
         try:
             test_output[row, 'Average Wait Answered'] = str(
-                test_output[row, 'Average Wait Answered'] / test_output[
-                    row, 'I/C Answered']
+                chop_microseconds(test_output[row, 'Average Wait Answered'] / test_output[row, 'I/C Answered'])
             )
         except ZeroDivisionError:
             test_output[row, 'Average Wait Answered'] = '0:00:00'
 
         try:
             test_output[row, 'Average Wait Lost'] = str(
-                test_output[row, 'Average Wait Lost'] / test_output[
-                    row, 'I/C Lost']
+                chop_microseconds(test_output[row, 'Average Wait Lost'] / test_output[row, 'I/C Lost'])
             )
         except ZeroDivisionError:
             test_output[row, 'Average Wait Lost'] = '0:00:00'
 
-        test_output[row, 'Longest Waiting Answered'] = str(test_output[row, 'Longest Waiting Answered'])
+        test_output[row, 'Longest Waiting Answered'] = str(
+            chop_microseconds(test_output[row, 'Longest Waiting Answered'])
+        )
 
         try:
-            test_output[row, 'PCA'] = (
-                (test_output[row, 'Calls Ans Within 15'] + test_output[row, 'Calls Ans Within 30']) /
-                test_output[row, 'I/C Presented']
+            test_output[row, 'PCA'] = '{0:.1%}'.format(
+                (test_output[row, 'Calls Ans Within 15'] + test_output[row, 'Calls Ans Within 30'])
+                / test_output[row, 'I/C Presented']
             )
         except ZeroDivisionError:
             test_output[row, 'PCA'] = 0.0

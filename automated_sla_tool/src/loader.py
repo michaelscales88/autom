@@ -40,11 +40,8 @@ class Loader:
         return loaded_files
 
     def load_or_dl(self, unloaded_files):
-        print('entering load or dl')
         loaded_files = self.load(unloaded_files)
-        print(loaded_files)
         if len(unloaded_files) > 0:
-            print('about to download')
             Downloader(parent=self.connection).get_f_list(self.connection.interval + timedelta(days=1),
                                                           unloaded_files)
         for key, values in {**loaded_files, **self.load(unloaded_files)}.items():
