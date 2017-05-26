@@ -20,6 +20,7 @@ class AReport(ReportTemplate):
                                   report_date=self._inr,
                                   my_report=self)
         self.req_src_files = self.settings.setting('req_src_files', rtn_val=[])
+        self.src_doc_path = self.open_src_dir()
 
     @property
     def date(self):
