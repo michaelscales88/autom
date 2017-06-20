@@ -43,4 +43,4 @@ class DateTimeEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()
-        return super(DateTimeEncoder, self).default(o)
+        return super().default(o)
