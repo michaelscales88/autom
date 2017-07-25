@@ -19,6 +19,7 @@ class SlaReport(AReport):
             print('Building a report for {date}'.format(date=self.interval))
             self.load_and_prepare()
             self.sla_report = {}
+            self.run()
 
     '''
     UI Section
@@ -68,7 +69,9 @@ class SlaReport(AReport):
                                         one_filter=self.util.answered_filter)
         self.scrutinize_abandon_group()
         if not self.test_mode:
-            self.src_files[r'Voice Mail'] = self.modify_vm(get_vm(self))
+            # self.src_files[r'Voice Mail'] = self.modify_vm(get_vm(self))
+            self.src_files[r'Voice Mail'] = self.modify_vm()
+            print(self.src_files[r'Voice Mail'])
 
     # TODO refactor this: combine process and extract and remove client -> call it run
     def extract_report_information(self):
@@ -85,6 +88,10 @@ class SlaReport(AReport):
                     voicemail=self.src_files[r'Voice Mail'].get(client, []),
                     full_service=full_service
                 )
+                if client_num == 7525:
+                    print('ans:', ans_cid_by_client[client_num])
+                    print('lost:', lost_cid_by_client[client_num])
+
                 if not self.sla_report[client_num].is_empty():
                     # TODO this could perhaps be a try: ... KeyError...
                     if self.sla_report[client_num].no_answered() is False:
@@ -98,15 +105,16 @@ class SlaReport(AReport):
             return
         else:
             is_weekday = self.util.is_weekday(self.interval)
-            headers = [self.interval.strftime('%A %m/%d/%Y'), 'I/C Presented', 'I/C Answered', 'I/C Lost',
-                       'Voice Mails',
-                       'Incoming Answered (%)', 'Incoming Lost (%)', 'Average Incoming Duration',
-                       'Average Wait Answered',
+            headers = [self.interval.strftime('%A %m/%d/%Y'),
+                       'I/C Presented', 'I/C Answered', 'I/C Lost', 'Voice Mails',
+                       'Incoming Live Answered (%)', 'Incoming Received (%)', 'Incoming Abandoned (%)',
+                       'Average Incoming Duration', 'Average Wait Answered',
                        'Average Wait Lost', 'Calls Ans Within 15', 'Calls Ans Within 30', 'Calls Ans Within 45',
                        'Calls Ans Within 60', 'Calls Ans Within 999', 'Call Ans + 999', 'Longest Waiting Answered',
                        'PCA']
             self.output.row += headers
             self.output.name_columns_by_row(0)
+            print(self.output.colnames, len(self.output.colnames))
             total_row = dict((value, 0) for value in headers[1:])
             total_row['Label'] = 'Summary'
             for client, client_num, full_service in self.process_gen('Clients'):
@@ -120,9 +128,12 @@ class SlaReport(AReport):
                         this_row['I/C Answered'] = num_calls['answered']
                         this_row['I/C Lost'] = num_calls['lost']
                         this_row['Voice Mails'] = num_calls['voicemails']
-                        this_row['Incoming Answered (%)'] = (num_calls['answered'] / this_row['I/C Presented'])
-                        this_row['Incoming Lost (%)'] = (
-                            (num_calls['lost'] + num_calls['voicemails']) / this_row['I/C Presented'])
+
+                        this_row['Incoming Live Answered (%)'] = (num_calls['answered'] / this_row['I/C Presented'])
+                        this_row['Incoming Abandoned (%)'] = num_calls['lost']/ this_row['I/C Presented']
+                        this_row['Incoming Received (%)'] = (
+                            (num_calls['answered'] + num_calls['voicemails']) / this_row['I/C Presented']
+                        )
                         this_row['Average Incoming Duration'] = self.sla_report[client_num].get_avg_call_duration()
                         this_row['Average Wait Answered'] = self.sla_report[client_num].get_avg_wait_answered()
                         this_row['Average Wait Lost'] = self.sla_report[client_num].get_avg_lost_duration()
@@ -247,30 +258,26 @@ class SlaReport(AReport):
         return report_details
 
     # TODO modify naming for this and new_type_cradle...
-    def modify_vm(self, inc_data):
+    def modify_vm(self):
         rtn_dict = {}
-        if isinstance(inc_data, dict):
-            c_vm = self.new_type_cradle_vm()
-            for client_name, inc_data, c_vm in sorted(self.util.common_keys(inc_data, c_vm)):
-                if client_name == 'Danaher':
-                    self.data_center.print_record(inc_data)
-                    self.data_center.print_record(c_vm)
-                for match1, match2 in self.util.return_matches(inc_data, c_vm, match_val='phone_number'):
-                    if abs(match1['time'] - match2['time']) < timedelta(seconds=30):
-                        call_id = match1['call_id'] if match1.get('call_id', None) else match2['call_id']
-                        client_info = rtn_dict.get(client_name, [])
-                        client_info.append(call_id)
-                        rtn_dict[client_name] = client_info
-                        if client_name == 'Danaher':
-                            print('matched danaher call_id', call_id)
+        for call_id_page in self.src_files[r'Cradle to Grave']:
+            for row_name in call_id_page.rownames:
+                row_event = call_id_page[row_name, 'Event Type']
+                if 'Voicemail' in row_event and self.util.get_sec(call_id_page[row_name, 'Event Duration']) > 20:
+                    client_name = call_id_page[row_name, 'Receiving Party']
+                    call_id = call_id_page.name
+                    client_info = rtn_dict.get(client_name, [])
+                    client_info.append(call_id)
+                    rtn_dict[client_name] = client_info
         return rtn_dict
 
-    def new_type_cradle_vm(self):
+    def read_cradle_vm(self):
         voice_mail_dict = defaultdict(list)
         for call_id_page in self.src_files[r'Cradle to Grave']:
             for row_name in call_id_page.rownames:
                 row_event = call_id_page[row_name, 'Event Type']
-                if 'Voicemail' in row_event:
+                if 'Voicemail' in row_event and self.util.get_sec(call_id_page[row_name, 'Event Duration']) > 20:
+                    print('found a vm that is longer than 20 seconds', call_id_page[row_name, 'Event Duration'])
                     receiving_party = call_id_page[row_name, 'Receiving Party']
                     client_info = voice_mail_dict.get(receiving_party, [])
                     try:
@@ -300,8 +307,9 @@ class SlaReport(AReport):
         row['Average Wait Answered'] = self.util.convert_time_stamp(row['Average Wait Answered'])
         row['Average Wait Lost'] = self.util.convert_time_stamp(row['Average Wait Lost'])
         row['Longest Waiting Answered'] = self.util.convert_time_stamp(row['Longest Waiting Answered'])
-        row['Incoming Answered (%)'] = '{0:.1%}'.format(row['Incoming Answered (%)'])
-        row['Incoming Lost (%)'] = '{0:.1%}'.format(row['Incoming Lost (%)'])
+        row['Incoming Live Answered (%)'] = '{0:.1%}'.format(row['Incoming Live Answered (%)'])
+        row['Incoming Abandoned (%)'] = '{0:.1%}'.format(row['Incoming Abandoned (%)'])
+        row['Incoming Received (%)'] = '{0:.1%}'.format(row['Incoming Received (%)'])
         row['PCA'] = '{0:.1%}'.format(row['PCA'])
 
     @staticmethod
@@ -311,8 +319,9 @@ class SlaReport(AReport):
                 row['I/C Answered'],
                 row['I/C Lost'],
                 row['Voice Mails'],
-                row['Incoming Answered (%)'],
-                row['Incoming Lost (%)'],
+                row['Incoming Live Answered (%)'],
+                row['Incoming Received (%)'],
+                row['Incoming Abandoned (%)'],
                 row['Average Incoming Duration'],
                 row['Average Wait Answered'],
                 row['Average Wait Lost'],
@@ -346,10 +355,11 @@ class SlaReport(AReport):
     @staticmethod
     def finalize_total_row(tr):
         if tr['I/C Presented'] > 0:
-            tr['Incoming Answered (%)'] = operator.truediv(tr['I/C Answered'],
+            tr['Incoming Live Answered (%)'] = operator.truediv(tr['I/C Answered'],
                                                            tr['I/C Presented'])
-            tr['Incoming Lost (%)'] = operator.truediv(tr['I/C Lost'] + tr['Voice Mails'],
-                                                       tr['I/C Presented'])
+            tr['Incoming Abandoned (%)'] = operator.truediv(tr['I/C Lost'], tr['I/C Presented'])
+            tr['Incoming Received (%)'] = operator.truediv(tr['I/C Answered'] + tr['Voice Mails'],
+                                                           tr['I/C Presented'])
             tr['PCA'] = operator.truediv(tr['Calls Ans Within 15'] + tr['Calls Ans Within 30'],
                                          tr['I/C Presented'])
             if tr['I/C Answered'] > 0:

@@ -63,6 +63,7 @@ class AReport(ReportTemplate):
     def __del__(self):
         if not self.test_mode:
             self.open()
+            # pass
 
     def open_src_dir(self):
         file_dir = r'{dir}\{sub}\{yr}\{tgt}'.format(dir=dirname(self.path),

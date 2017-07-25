@@ -36,7 +36,7 @@ def main(report_date=None, test_mode=False):
 
 
 if __name__ == '__main__':
-    main()
+    main(report_date=datetime.today().replace(day=1))
 else:
     # This loads when the module loads. you can load module resources in this way
     pass
