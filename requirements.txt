@@ -1,6 +1,8 @@
+appdirs
 configobj
 pyexcel
 pyexcel-io
+pyexcel-xlsx
 pyparsing
 pypyodbc
 python-dateutil

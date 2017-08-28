@@ -66,12 +66,10 @@ class AReport(ReportTemplate):
             # pass
 
     def open_src_dir(self):
-        path = 'M:Help Desk\MikeSxferFolder'
-        file_dir = r'{dir}\{sub}\{yr}\{tgt}'.format(dir=path if path else dirname(self.path),
+        file_dir = r'{dir}\{sub}\{yr}\{tgt}'.format(dir=dirname(self.path),
                                                     sub='Attachment Archive',
                                                     yr=self.interval.strftime('%Y'),
                                                     tgt=self.interval.strftime('%m%d'))
-        print(file_dir)
         self.util.make_dir(file_dir)
         return file_dir
 
